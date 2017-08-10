@@ -84,9 +84,6 @@ RUN wget -q ${OXTRUST_DOWNLOAD_URL} -O /tmp/oxtrust.war \
     && java -jar ${JETTY_HOME}/start.jar jetty.home=${JETTY_HOME} jetty.base=${JETTY_BASE}/identity --add-to-start=deploy,http,jsp,ext,http-forwarded,websocket \
     && rm -f /tmp/oxtrust.war
 
-RUN mkdir -p ${JETTY_USER_HOME_LIB}
-# RUN wget -q http://central.maven.org/maven2/org/bouncycastle/bcprov-jdk16/1.46/bcprov-jdk16-1.46.jar -O ${JETTY_USER_HOME_LIB}/bcprov-jdk16-1.46.jar
-
 # Unpack Shib config
 RUN unzip -q ${JETTY_BASE}/identity/webapps/identity/WEB-INF/lib/oxtrust-configuration-${OX_VERSION}.jar shibboleth3/* -d /opt/gluu/jetty/identity/conf
 
