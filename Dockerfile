@@ -90,6 +90,9 @@ RUN mkdir -p ${JETTY_USER_HOME_LIB}
 # Unpack Shib config
 RUN unzip -q ${JETTY_BASE}/identity/webapps/identity/WEB-INF/lib/oxtrust-configuration-${OX_VERSION}.jar shibboleth3/* -d /opt/gluu/jetty/identity/conf
 
+RUN mv ${JETTY_BASE}/identity/webapps/identity/WEB-INF/web.xml ${JETTY_BASE}/identity/webapps/identity/WEB-INF/web.xml.bak
+COPY jetty/web.xml ${JETTY_BASE}/identity/webapps/identity/WEB-INF/
+
 # ====
 # tini
 # ====
