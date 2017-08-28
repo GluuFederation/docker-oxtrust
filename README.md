@@ -2,6 +2,9 @@
 
 A docker image version of oxTrust.
 
+## Latest Stable Release
+
+Latest stable release is `gluufederation/oxtrust:3.0.1_rev1.0.0-beta2`. See `CHANGES.md` for archives.
 
 ## Versioning/Tagging
 
