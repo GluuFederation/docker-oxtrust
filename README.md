@@ -2,6 +2,9 @@
 
 A docker image version of oxTrust.
 
+## Latest Stable Release
+
+Latest stable release is `gluufederation/oxtrust:3.0.1_rev1.0.0-beta2`. See `CHANGES.md` for archives.
 
 ## Versioning/Tagging
 
@@ -33,7 +36,7 @@ docker pull gluufederation/oxtrust:latest
 
 - `GLUU_KV_HOST`: hostname or IP address of Consul.
 - `GLUU_KV_PORT`: port of Consul.
-- `GLUU_LDAP_URL`: URL to LDAP (single URL or comma-separated URLs).
+- `GLUU_LDAP_URL`: URL to LDAP in `host:port` format string (i.e. `192.168.100.4:1389`); multiple URLs can be used using comma-separated value (i.e. `192.168.100.1:1389,192.168.100.2:1389`).
 - `GLUU_CUSTOM_OXTRUST_URL`: URL to downloadable custom oxTrust files packed using `.tar.gz` format.
 
 ## Volumes
