@@ -1,7 +1,12 @@
 bindDN: %(ldap_binddn)s
 bindPassword: %(encoded_ox_ldap_pw)s
 servers: %(ldap_url)s
+
 useSSL: %(use_ssl)s
+#ssl.trustStoreFile: /etc/certs/openldap.pkcs12
+#ssl.trustStorePin: %(encoded_openldapJksPass)s
+#ssl.trustStoreFormat: pkcs12
+
 maxconnections: 10
 
 oxauth_ConfigurationEntryDN=ou=oxauth,ou=configuration,inum=%(inumAppliance)s,ou=appliances,o=gluu

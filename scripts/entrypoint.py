@@ -24,6 +24,7 @@ def render_ldap_properties():
     encoded_ox_ldap_pw = consul.kv.get("encoded_ox_ldap_pw")
     inumAppliance = consul.kv.get("inumAppliance")
     use_ssl = consul.kv.get("ldap_use_ssl", "false")
+    encoded_openldapJksPass = consul.kv.get("encoded_openldapJksPass")
 
     with open("/opt/templates/ox-ldap.properties.tmpl") as fr:
         txt = fr.read()
@@ -35,6 +36,7 @@ def render_ldap_properties():
                 "inumAppliance": inumAppliance,
                 "ldap_url": GLUU_LDAP_URL,
                 "use_ssl": use_ssl,
+                "encoded_openldapJksPass": encoded_openldapJksPass,
             }
             fw.write(rendered_txt)
 
