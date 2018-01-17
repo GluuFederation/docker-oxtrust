@@ -1,6 +1,8 @@
+import base64
 import os
 
 import consulate
+from M2Crypto.EVP import Cipher
 
 GLUU_LDAP_URL = os.environ.get("GLUU_LDAP_URL", "localhost:1636")
 GLUU_KV_HOST = os.environ.get("GLUU_KV_HOST", "localhost")
@@ -55,8 +57,33 @@ def render_ssl_key():
             fd.write(ssl_key)
 
 
+def render_scim_rs_jks():
+    jks = decrypt_text(consul.kv.get("scim_rs_jks_base64"),
+                       consul.kv.get("encoded_salt"))
+
+    with open(consul.kv.get("scim_rs_client_jks_fn"), "w") as fd:
+        fd.write(jks)
+        return True
+    return False
+
+
+def decrypt_text(encrypted_text, key):
+    # Porting from pyDes-based encryption (see http://git.io/htpk)
+    # to use M2Crypto instead (see https://gist.github.com/mrluanma/917014)
+    cipher = Cipher(alg="des_ede3_ecb",
+                    key=b"{}".format(key),
+                    op=0,
+                    iv="\0" * 16)
+    decrypted_text = cipher.update(base64.b64decode(
+        b"{}".format(encrypted_text)
+    ))
+    decrypted_text += cipher.final()
+    return decrypted_text
+
+
 if __name__ == "__main__":
     render_salt()
     render_ldap_properties()
     render_ssl_cert()
     render_ssl_key()
+    render_scim_rs_jks()
