@@ -1,30 +1,21 @@
-FROM ubuntu:14.04
+FROM alpine:3.7
 
-MAINTAINER Gluu Inc. <support@gluu.org>
+LABEL maintainer="Gluu Inc. <support@gluu.org>"
 
 # ===============
-# Ubuntu packages
+# Alpine packages
 # ===============
 
 # Jetty requires Java 8, hence we need to get latest OpenJDK 8 from PPA
-RUN echo "deb http://ppa.launchpad.net/openjdk-r/ppa/ubuntu trusty main" >> /etc/apt/sources.list.d/openjdk.list \
-    && echo "deb-src http://ppa.launchpad.net/openjdk-r/ppa/ubuntu trusty main" >> /etc/apt/sources.list.d/openjdk.list \
-    && apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 86F44E2A
-
-RUN apt-get update && apt-get install -y \
-    openjdk-8-jre-headless \
+RUN apk update && apk add --no-cache \
+    openjdk8 \
     unzip \
     wget \
     python \
-    python-pip \
-    facter \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+    py-pip \
+    openssl \
+    bash
 
-# workaround for bug on ubuntu 14.04 with openjdk-8
-RUN /var/lib/dpkg/info/ca-certificates-java.postinst configure
-
-# Set openjdk 8 as default java
 RUN cd /usr/lib/jvm && ln -s java-1.8.0-openjdk-amd64 default-java
 
 # =====
@@ -39,6 +30,7 @@ ENV JETTY_USER_HOME_LIB /home/jetty/lib
 
 # Install jetty
 RUN wget -q ${JETTY_TGZ_URL} -O /tmp/jetty.tar.gz \
+    && mkdir /opt \
     && tar -xzf /tmp/jetty.tar.gz -C /opt \
     && mv /opt/jetty-distribution-${JETTY_VERSION} ${JETTY_HOME} \
     && rm -rf /tmp/jetty.tar.gz
@@ -68,7 +60,7 @@ RUN wget -q ${JYTHON_DOWNLOAD_URL} -O /tmp/jython.jar \
 # =======
 
 ENV OX_VERSION 3.1.2.Final
-ENV OX_BUILD_DATE 2017-01-18
+ENV OX_BUILD_DATE 2018-01-18
 ENV OXTRUST_DOWNLOAD_URL https://ox.gluu.org/maven/org/xdi/oxtrust-server/${OX_VERSION}/oxtrust-server-${OX_VERSION}.war
 
 # the LABEL defined before downloading ox war/jar files to make sure
@@ -89,15 +81,6 @@ RUN unzip -q ${JETTY_BASE}/identity/webapps/identity/WEB-INF/lib/oxtrust-configu
 
 RUN mv ${JETTY_BASE}/identity/webapps/identity/WEB-INF/web.xml ${JETTY_BASE}/identity/webapps/identity/WEB-INF/web.xml.bak
 COPY jetty/web.xml ${JETTY_BASE}/identity/webapps/identity/WEB-INF/
-
-# ====
-# tini
-# ====
-
-ENV TINI_VERSION v0.15.0
-RUN wget -q https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini -O /tini \
-    && chmod +x /tini
-ENTRYPOINT ["/tini", "--"]
 
 # ====
 # gosu
@@ -127,6 +110,7 @@ RUN mkdir -p /etc/certs \
     && mkdir -p /opt/scripts \
     && mkdir -p /opt/templates
 
+
 # Copy templates
 COPY jetty/identity_web_resources.xml ${JETTY_BASE}/identity/webapps/
 COPY conf/oxTrustLogRotationConfiguration.xml /etc/gluu/conf/
@@ -146,4 +130,5 @@ VOLUME ${JETTY_BASE}/identity/lib/ext
 COPY scripts/entrypoint.sh /opt/scripts/
 COPY scripts/entrypoint.py /opt/scripts/
 RUN chmod +x /opt/scripts/entrypoint.sh
+ENTRYPOINT ["/bin/bash"]
 CMD ["/opt/scripts/entrypoint.sh"]
