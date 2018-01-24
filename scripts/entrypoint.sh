@@ -7,7 +7,7 @@ import_ssl_cert() {
         keytool -importcert -trustcacerts \
             -alias gluu_https \
             -file /etc/certs/gluu_https.der \
-            -keystore /usr/lib/jvm/default-java/jre/lib/security/cacerts \
+            -keystore /usr/lib/jvm/java-1.8-openjdk/jre/lib/security/cacerts \
             -storepass changeit \
             -noprompt
     fi
