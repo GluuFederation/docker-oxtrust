@@ -14,7 +14,6 @@ RUN apk update && apk add --no-cache \
     python \
     py-pip \
     openssl \
-    facter \
     bash
 
 RUN cd /usr/lib/jvm && ln -s java-1.8.0-openjdk-amd64 default-java
