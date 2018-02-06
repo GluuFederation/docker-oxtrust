@@ -2,10 +2,10 @@ bindDN: %(ldap_binddn)s
 bindPassword: %(encoded_ox_ldap_pw)s
 servers: %(ldap_url)s
 
-useSSL: %(use_ssl)s
-#ssl.trustStoreFile: /etc/certs/openldap.pkcs12
-#ssl.trustStorePin: %(encoded_openldapJksPass)s
-#ssl.trustStoreFormat: pkcs12
+useSSL: true
+ssl.trustStoreFile: %(ldapTrustStoreFn)s
+ssl.trustStorePin: %(encoded_ldapTrustStorePass)s
+ssl.trustStoreFormat: pkcs12
 
 maxconnections: 10
 

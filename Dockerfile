@@ -16,7 +16,10 @@ RUN apt-get update && apt-get install -y \
     unzip \
     wget \
     python \
+    python-dev \
     python-pip \
+    swig \
+    libssl-dev \
     facter \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
@@ -107,14 +110,17 @@ ENV GOSU_VERSION 1.10
 RUN wget -q https://github.com/tianon/gosu/releases/download/${GOSU_VERSION}/gosu-amd64 -O /usr/local/bin/gosu \
     && chmod +x /usr/local/bin/gosu
 
-# Python packages
+# ======
+# Python
+# ======
 RUN pip install -U pip
 
 # A workaround to address https://github.com/docker/docker-py/issues/1054
 # and to make sure latest pip is being used, not from OS one
 ENV PYTHONPATH="/usr/local/lib/python2.7/dist-packages:/usr/lib/python2.7/dist-packages"
 
-RUN pip install "consulate==0.6.0"
+COPY requirements.txt /tmp/requirements.txt
+RUN pip install --no-cache-dir -r /tmp/requirements.txt
 
 # ==========
 # misc stuff
