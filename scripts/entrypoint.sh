@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 set -e
 
 import_ssl_cert() {
@@ -7,7 +7,7 @@ import_ssl_cert() {
         keytool -importcert -trustcacerts \
             -alias gluu_https \
             -file /etc/certs/gluu_https.der \
-            -keystore /usr/lib/jvm/default-java/jre/lib/security/cacerts \
+            -keystore /usr/lib/jvm/default-jvm/jre/lib/security/cacerts \
             -storepass changeit \
             -noprompt
     fi
@@ -44,7 +44,7 @@ if [ ! -f /touched ]; then
 fi
 
 cd /opt/gluu/jetty/identity
-exec gosu root java -jar /opt/jetty/start.jar -server \
+exec java -jar /opt/jetty/start.jar -server \
     -Xms256m -Xmx2048m -XX:+DisableExplicitGC \
     -Dgluu.base=/etc/gluu \
     -Dserver.base=/opt/gluu/jetty/identity \
