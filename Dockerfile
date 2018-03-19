@@ -129,6 +129,7 @@ VOLUME ${JETTY_BASE}/identity/lib/ext
 
 COPY scripts/entrypoint.sh /opt/scripts/
 COPY scripts/entrypoint.py /opt/scripts/
+COPY scripts/wait-for-consul.sh /opt/scripts/
 RUN chmod +x /opt/scripts/entrypoint.sh
 ENTRYPOINT ["/bin/bash"]
 CMD ["/opt/scripts/entrypoint.sh"]
