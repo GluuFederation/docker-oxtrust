@@ -11,6 +11,10 @@ RUN apk update && apk add --no-cache \
     openssl \
     ruby \
     coreutils \
+    gcc \
+    python-dev \
+    musl-dev \
+    openldap-dev \
     inotify-tools
 
 # =====
