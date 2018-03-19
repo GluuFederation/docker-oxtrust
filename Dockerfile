@@ -60,7 +60,7 @@ RUN wget -q ${JYTHON_DOWNLOAD_URL} -O /tmp/jython.jar \
 # =======
 
 ENV OX_VERSION 3.1.2.Final
-ENV OX_BUILD_DATE 2017-01-18
+ENV OX_BUILD_DATE 2018-01-18
 ENV OXTRUST_DOWNLOAD_URL https://ox.gluu.org/maven/org/xdi/oxtrust-server/${OX_VERSION}/oxtrust-server-${OX_VERSION}.war
 
 # the LABEL defined before downloading ox war/jar files to make sure
@@ -106,6 +106,7 @@ RUN mkdir -p /etc/certs \
     && mkdir -p /opt/scripts \
     && mkdir -p /opt/templates
 
+
 # Copy templates
 COPY jetty/identity_web_resources.xml ${JETTY_BASE}/identity/webapps/
 COPY conf/oxTrustLogRotationConfiguration.xml /etc/gluu/conf/
@@ -123,4 +124,5 @@ VOLUME ${JETTY_BASE}/identity/lib/ext
 
 COPY scripts /opt/scripts
 RUN chmod +x /opt/scripts/entrypoint.sh
+ENTRYPOINT ["/bin/bash"]
 CMD ["/opt/scripts/entrypoint.sh"]

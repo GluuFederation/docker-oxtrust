@@ -4,7 +4,7 @@ A docker image version of oxTrust.
 
 ## Latest Stable Release
 
-Latest stable release is `gluufederation/oxtrust:3.0.1_rev1.0.0-beta2`. See `CHANGES.md` for archives.
+Latest stable release is `gluufederation/oxtrust:3.1.2_alpine`. See `CHANGES.md` for archives.
 
 ## Versioning/Tagging
 
@@ -12,11 +12,11 @@ This image uses its own versioning/tagging format.
 
     <IMAGE-NAME>:<GLUU-SERVER-VERSION>_<INTERNAL-REV-VERSION>
 
-For example, `gluufederation/oxtrust:3.0.1_rev1.0.0` consists of:
+For example, `gluufederation/oxtrust:3.1.2_alpine` consists of:
 
 - glufederation/oxtrust as `<IMAGE_NAME>`; the actual image name
-- 3.0.1 as `GLUU-SERVER-VERSION`; the Gluu Server version as setup reference
-- rev1.0.0 as `<INTERNAL-REV-VERSION>`; revision made when developing the image
+- 3.1.2 as `GLUU-SERVER-VERSION`; the Gluu Server version as setup reference
+- \_alpine as `<INTERNAL-REV-VERSION>`; revision made when developing the image
 
 ## Installation
 
