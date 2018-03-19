@@ -1,4 +1,4 @@
-FROM alpine:3.7
+FROM openjdk:jre-alpine
 
 LABEL maintainer="Gluu Inc. <support@gluu.org>"
 
@@ -6,17 +6,16 @@ LABEL maintainer="Gluu Inc. <support@gluu.org>"
 # Alpine packages
 # ===============
 
-# Jetty requires Java 8, hence we need to get latest OpenJDK 8 from PPA
 RUN apk update && apk add --no-cache \
-    openjdk8 \
-    unzip \
-    wget \
-    python \
     py-pip \
+    swig \
     openssl \
-    bash
-
-RUN cd /usr/lib/jvm && ln -s java-1.8.0-openjdk-amd64 default-java
+    openssl-dev \
+    gcc \
+    python-dev \
+    musl-dev \
+    ruby \
+    coreutils
 
 # =====
 # Jetty
@@ -30,13 +29,13 @@ ENV JETTY_USER_HOME_LIB /home/jetty/lib
 
 # Install jetty
 RUN wget -q ${JETTY_TGZ_URL} -O /tmp/jetty.tar.gz \
-    && mkdir /opt \
+    && mkdir -p /opt \
     && tar -xzf /tmp/jetty.tar.gz -C /opt \
     && mv /opt/jetty-distribution-${JETTY_VERSION} ${JETTY_HOME} \
-    && rm -rf /tmp/jetty.tar.gz
-
-RUN mv ${JETTY_HOME}/etc/webdefault.xml ${JETTY_HOME}/etc/webdefault.xml.bak \
+    && rm -rf /tmp/jetty.tar.gz \
+    && mv ${JETTY_HOME}/etc/webdefault.xml ${JETTY_HOME}/etc/webdefault.xml.bak \
     && mv ${JETTY_HOME}/etc/jetty.xml ${JETTY_HOME}/etc/jetty.xml.bak
+
 COPY jetty/webdefault.xml ${JETTY_HOME}/etc/
 COPY jetty/jetty.xml ${JETTY_HOME}/etc/
 
@@ -52,6 +51,7 @@ ENV JYTHON_DOWNLOAD_URL http://central.maven.org/maven2/org/python/jython-standa
 
 # Install Jython
 RUN wget -q ${JYTHON_DOWNLOAD_URL} -O /tmp/jython.jar \
+    && mkdir -p /opt/jython \
     && unzip -q /tmp/jython.jar -d /opt/jython \
     && rm -f /tmp/jython.jar
 
@@ -71,33 +71,29 @@ LABEL vendor="Gluu Federation" \
 
 # Install oxTrust
 RUN wget -q ${OXTRUST_DOWNLOAD_URL} -O /tmp/oxtrust.war \
-    && mkdir -p ${JETTY_BASE}/identity/webapps \
+    && mkdir -p ${JETTY_BASE}/identity/webapps/identity \
     && unzip -qq /tmp/oxtrust.war -d ${JETTY_BASE}/identity/webapps/identity \
     && java -jar ${JETTY_HOME}/start.jar jetty.home=${JETTY_HOME} jetty.base=${JETTY_BASE}/identity --add-to-start=deploy,http,jsp,ext,http-forwarded,websocket \
-    && rm -f /tmp/oxtrust.war
+    && rm -f /tmp/oxtrust.war \
+    && mkdir -p ${JETTY_BASE}/identity/conf \
+    && unzip -q ${JETTY_BASE}/identity/webapps/identity/WEB-INF/lib/oxtrust-configuration-${OX_VERSION}.jar shibboleth3/* -d /opt/gluu/jetty/identity/conf \
+    && mv ${JETTY_BASE}/identity/webapps/identity/WEB-INF/web.xml ${JETTY_BASE}/identity/webapps/identity/WEB-INF/web.xml.bak
 
-# Unpack Shib config
-RUN unzip -q ${JETTY_BASE}/identity/webapps/identity/WEB-INF/lib/oxtrust-configuration-${OX_VERSION}.jar shibboleth3/* -d /opt/gluu/jetty/identity/conf
-
-RUN mv ${JETTY_BASE}/identity/webapps/identity/WEB-INF/web.xml ${JETTY_BASE}/identity/webapps/identity/WEB-INF/web.xml.bak
 COPY jetty/web.xml ${JETTY_BASE}/identity/webapps/identity/WEB-INF/
 
-# ====
-# gosu
-# ====
+# ======
+# Facter
+# ======
 
-ENV GOSU_VERSION 1.10
-RUN wget -q https://github.com/tianon/gosu/releases/download/${GOSU_VERSION}/gosu-amd64 -O /usr/local/bin/gosu \
-    && chmod +x /usr/local/bin/gosu
+RUN gem install facter --no-ri --no-rdoc
 
-# Python packages
-RUN pip install -U pip
+# ======
+# Python
+# ======
 
-# A workaround to address https://github.com/docker/docker-py/issues/1054
-# and to make sure latest pip is being used, not from OS one
-ENV PYTHONPATH="/usr/local/lib/python2.7/dist-packages:/usr/lib/python2.7/dist-packages"
-
-RUN pip install "consulate==0.6.0"
+COPY requirements.txt /tmp/requirements.txt
+RUN pip install -U pip \
+    && pip install --no-cache-dir -r /tmp/requirements.txt
 
 # ==========
 # misc stuff
@@ -126,10 +122,7 @@ VOLUME ${JETTY_BASE}/identity/custom/pages
 VOLUME ${JETTY_BASE}/identity/custom/static
 VOLUME ${JETTY_BASE}/identity/lib/ext
 
-
-COPY scripts/entrypoint.sh /opt/scripts/
-COPY scripts/entrypoint.py /opt/scripts/
-COPY scripts/wait-for-consul.sh /opt/scripts/
+COPY scripts /opt/scripts
 RUN chmod +x /opt/scripts/entrypoint.sh
 ENTRYPOINT ["/bin/bash"]
 CMD ["/opt/scripts/entrypoint.sh"]
