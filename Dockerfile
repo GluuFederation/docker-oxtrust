@@ -120,6 +120,7 @@ ENV GLUU_CUSTOM_OXTRUST_URL ""
 VOLUME ${JETTY_BASE}/identity/custom/pages
 VOLUME ${JETTY_BASE}/identity/custom/static
 VOLUME ${JETTY_BASE}/identity/lib/ext
+VOLUME ${JETTY_BASE}/identity/logs
 
 COPY scripts /opt/scripts
 RUN chmod +x /opt/scripts/entrypoint.sh
