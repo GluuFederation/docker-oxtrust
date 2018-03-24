@@ -8,12 +8,7 @@ LABEL maintainer="Gluu Inc. <support@gluu.org>"
 
 RUN apk update && apk add --no-cache \
     py-pip \
-    swig \
     openssl \
-    openssl-dev \
-    gcc \
-    python-dev \
-    musl-dev \
     ruby \
     coreutils
 
