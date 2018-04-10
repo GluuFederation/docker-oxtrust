@@ -82,9 +82,30 @@ def sync_ldap_pkcs12():
         fw.write(pkcs)
 
 
+def render_idp_cert():
+    cert = decrypt_text(get_config("shibIDP_cert"), get_config("encoded_salt"))
+    with open("/etc/certs/shibIDP.crt", "w") as fd:
+        fd.write(cert)
+
+
+def render_idp_signing_cert():
+    cert = get_config("idp3SigningCertificateText")
+    with open("/etc/certs/idp-signing.crt", "w") as fd:
+        fd.write(cert)
+
+
+def render_idp_encryption_cert():
+    cert = get_config("idp3EncryptionCertificateText")
+    with open("/etc/certs/idp-encryption.crt", "w") as fd:
+        fd.write(cert)
+
+
 if __name__ == "__main__":
     render_salt()
     render_ldap_properties()
     render_ssl_cert()
     render_ssl_key()
+    render_idp_cert()
+    render_idp_signing_cert()
+    render_idp_encryption_cert()
     sync_ldap_pkcs12()
