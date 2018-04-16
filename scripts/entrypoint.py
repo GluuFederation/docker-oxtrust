@@ -88,6 +88,12 @@ def render_idp_cert():
         fd.write(cert)
 
 
+def render_idp_key():
+    cert = decrypt_text(get_config("shibIDP_key"), get_config("encoded_salt"))
+    with open("/etc/certs/shibIDP.key", "w") as fd:
+        fd.write(cert)
+
+
 def render_idp_signing_cert():
     cert = get_config("idp3SigningCertificateText")
     with open("/etc/certs/idp-signing.crt", "w") as fd:
@@ -106,6 +112,7 @@ if __name__ == "__main__":
     render_ssl_cert()
     render_ssl_key()
     render_idp_cert()
+    render_idp_key()
     render_idp_signing_cert()
     render_idp_encryption_cert()
     sync_ldap_pkcs12()

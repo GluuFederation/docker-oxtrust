@@ -34,14 +34,25 @@ download_custom_tar() {
     fi
 }
 
-
+pull_shared_shib_files() {
+    mkdir -p $GLUU_SHIB_TARGET_DIR $GLUU_SHIB_SOURCE_DIR
+    # sync with existing files in target directory (mapped volume)
+    if [ ! -z $(ls -A $GLUU_SHIB_TARGET_DIR) ]; then
+        cp -R $GLUU_SHIB_TARGET_DIR/* $GLUU_SHIB_SOURCE_DIR/
+    fi
+}
 
 if [ ! -f /touched ]; then
     download_custom_tar
     python /opt/scripts/entrypoint.py
     import_ssl_cert
+    pull_shared_shib_files
     touch /touched
 fi
+
+
+# monitor filesystem changes on Shibboleth-related files
+sh /opt/scripts/shibwatcher.sh &
 
 cd /opt/gluu/jetty/identity
 exec java -jar /opt/jetty/start.jar -server \

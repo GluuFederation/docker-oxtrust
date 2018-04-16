@@ -10,7 +10,8 @@ RUN apk update && apk add --no-cache \
     py-pip \
     openssl \
     ruby \
-    coreutils
+    coreutils \
+    inotify-tools
 
 # =====
 # Jetty
@@ -103,6 +104,7 @@ RUN mkdir -p /etc/certs \
 
 # Copy templates
 COPY jetty/identity_web_resources.xml ${JETTY_BASE}/identity/webapps/
+COPY jetty/idp-metadata.xml.vm ${JETTY_BASE}/identity/conf/shibboleth3/idp/idp-metadata.xml.vm
 COPY conf/oxTrustLogRotationConfiguration.xml /etc/gluu/conf/
 COPY conf/ox-ldap.properties.tmpl /opt/templates/
 COPY conf/salt.tmpl /opt/templates/
@@ -111,11 +113,14 @@ ENV GLUU_LDAP_URL localhost:1636
 ENV GLUU_KV_HOST localhost
 ENV GLUU_KV_PORT 8500
 ENV GLUU_CUSTOM_OXTRUST_URL ""
+ENV GLUU_SHIB_SOURCE_DIR /opt/shibboleth-idp
+ENV GLUU_SHIB_TARGET_DIR /opt/shared-shibboleth-idp
 
 VOLUME ${JETTY_BASE}/identity/custom/pages
 VOLUME ${JETTY_BASE}/identity/custom/static
 VOLUME ${JETTY_BASE}/identity/lib/ext
 VOLUME ${JETTY_BASE}/identity/logs
+VOLUME /opt/shared-shibboleth-idp
 
 COPY scripts /opt/scripts
 RUN chmod +x /opt/scripts/entrypoint.sh
