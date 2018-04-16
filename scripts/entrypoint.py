@@ -106,6 +106,20 @@ def render_idp_encryption_cert():
         fd.write(cert)
 
 
+def render_scim_rs_jks():
+    jks = decrypt_text(get_config("scim_rs_jks_base64"),
+                       get_config("encoded_salt"))
+    with open(get_config("scim_rs_client_jks_fn"), "w") as f:
+        f.write(jks)
+
+
+def render_passport_rs_jks():
+    jks = decrypt_text(get_config("passport_rs_jks_base64"),
+                       get_config("encoded_salt"))
+    with open(get_config("passport_rs_client_jks_fn"), "w") as f:
+        f.write(jks)
+
+
 if __name__ == "__main__":
     render_salt()
     render_ldap_properties()
@@ -115,4 +129,6 @@ if __name__ == "__main__":
     render_idp_key()
     render_idp_signing_cert()
     render_idp_encryption_cert()
+    render_scim_rs_jks()
+    render_passport_rs_jks()
     sync_ldap_pkcs12()
