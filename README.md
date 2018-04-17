@@ -25,7 +25,7 @@ docker run -d \
     -e GLUU_KV_HOST=consul.example.com \
     -e GLUU_KV_PORT=8500 \
     -e GLUU_LDAP_URL=ldap.example.com:1636 \
-    -v $PWD/shared-shibboleth-idp:/opt/shared-shibboleth-idp \
+    -v $PWD/shared-shibboleth-idp:/opt/shibboleth-idp \
     gluufederation/oxtrust:3.1.2_dev
 ```
 
