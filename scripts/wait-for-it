@@ -10,16 +10,17 @@
 ##
 ## author: torstein@escenic.com
 
-import logging as log
+import base64
 import consulate
 import ldap
+import logging as log
 import os
+import pyDes
 import requests
 import sys
 import time
 
 GLUU_LDAP_URL = os.environ.get("GLUU_LDAP_URL", "ldap:1636")
-GLUU_LDAP_PASSWORD = os.environ.get("GLUU_LDAP_PASSWORD", "admin")
 GLUU_KV_HOST = os.environ.get("GLUU_KV_HOST", "localhost")
 GLUU_KV_PORT = os.environ.get("GLUU_KV_PORT", 8500)
 
@@ -54,8 +55,21 @@ def wait_for_consul_to_be_up_and_populated(consul):
     sys.exit(1)
 
 
+def get_ldap_password(consul):
+    encoded_password = consul.kv.get("gluu/config/encoded_ox_ldap_pw")
+    encoded_salt = consul.kv.get("gluu/config/encoded_salt")
+    cipher = pyDes.triple_des(
+        b"{}".format(encoded_salt),
+        pyDes.ECB,
+        padmode=pyDes.PAD_PKCS5
+    )
+    encrypted_text = b"{}".format(base64.b64decode(encoded_password))
+    return cipher.decrypt(encrypted_text)
+
+
 def wait_for_ldap_to_be_up_and_initialised(consul):
     ldap_bind_dn = consul.kv.get("gluu/config/ldap_binddn")
+    ldap_password = get_ldap_password(consul)
 
     ldap.set_option(ldap.OPT_X_TLS_REQUIRE_CERT, ldap.OPT_X_TLS_NEVER)
     l = ldap.initialize(
@@ -71,7 +85,7 @@ def wait_for_ldap_to_be_up_and_initialised(consul):
 
     for i in range(0, MAX_WAIT_SECONDS, SLEEP_DURATION):
         try:
-            l.bind_s(ldap_bind_dn, GLUU_LDAP_PASSWORD)
+            l.bind_s(ldap_bind_dn, ldap_password)
             ldap_result = l.search_s(
                 "o=gluu",
                 ldap.SCOPE_SUBTREE,
