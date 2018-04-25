@@ -23,8 +23,9 @@ import time
 GLUU_LDAP_URL = os.environ.get("GLUU_LDAP_URL", "ldap:1636")
 GLUU_KV_HOST = os.environ.get("GLUU_KV_HOST", "localhost")
 GLUU_KV_PORT = os.environ.get("GLUU_KV_PORT", 8500)
+GLUU_OXAUTH_BACKEND = os.environ.get("GLUU_OXAUTH_BACKEND", "oxauth:8080")
 
-MAX_WAIT_SECONDS = 120
+MAX_WAIT_SECONDS = 300
 SLEEP_DURATION = 3
 LAST_CONSUL_KEY = "gluu/config/oxauth_openid_jwks_fn"
 
@@ -109,7 +110,7 @@ def wait_for_ldap_to_be_up_and_initialised(consul):
 
 
 def wait_for_oxauth_to_be_up(consul):
-    url = "http://oxauth:8080/oxauth/.well-known/openid-configuration"
+    url = "http://" + GLUU_OXAUTH_BACKEND + "/oxauth/.well-known/openid-configuration"
     sleep_duration = 5
     log.debug("Waiting for oxauth to be up url= " + url)
     for i in range(0, MAX_WAIT_SECONDS, sleep_duration):
