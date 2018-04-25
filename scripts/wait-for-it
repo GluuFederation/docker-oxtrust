@@ -12,7 +12,7 @@
 
 import base64
 import consulate
-import ldap
+import ldap3
 import logging as log
 import os
 import pyDes
@@ -72,13 +72,14 @@ def wait_for_ldap_to_be_up_and_initialised(consul):
     ldap_bind_dn = consul.kv.get("gluu/config/ldap_binddn")
     ldap_password = get_ldap_password(consul)
 
-    ldap.set_option(ldap.OPT_X_TLS_REQUIRE_CERT, ldap.OPT_X_TLS_NEVER)
-    l = ldap.initialize(
-        uri="ldaps://" + GLUU_LDAP_URL,
-        trace_level=0
-    )
-    ldap_result = {}
+    ldap_host = GLUU_LDAP_URL.split(":")[0]
+    ldap_port = int(GLUU_LDAP_URL.split(":")[1])
 
+    ldap_server = ldap3.Server(
+        ldap_host,
+        ldap_port,
+        use_ssl=True
+    )
     log.debug(
         "LDAP trying ldaps://" + str(GLUU_LDAP_URL) +
         " ldap_bind_dn=" + ldap_bind_dn
@@ -86,23 +87,31 @@ def wait_for_ldap_to_be_up_and_initialised(consul):
 
     for i in range(0, MAX_WAIT_SECONDS, SLEEP_DURATION):
         try:
-            l.bind_s(ldap_bind_dn, ldap_password)
-            ldap_result = l.search_s(
-                "o=gluu",
-                ldap.SCOPE_SUBTREE,
-                "(oxScopeType=openid)"
-            )
+            with ldap3.Connection(
+                    ldap_server,
+                    ldap_bind_dn,
+                    ldap_password) as ldap_connection:
 
-            if len(ldap_result) > 0:
-                log.info("LDAP is up and populated :-)")
-                l.unbind()
-                return 0
+                ldap_connection.search(
+                    search_base="o=gluu",
+                    search_filter="(oxScopeType=openid)",
+                    search_scope=ldap3.SUBTREE,
+                    attributes=['*']
+                )
+
+                if ldap_connection.entries:
+                    log.info("LDAP is up and populated :-)")
+                    return 0
 
         except Exception as e:
             log.debug(
                 "LDAP not yet initialised: " + str(e) + ", " +
                 "sleeping " + str(i) + "/" + str(MAX_WAIT_SECONDS)
             )
+        log.debug(
+            "LDAP not yet initialised: " +
+            "sleeping " + str(i) + "/" + str(MAX_WAIT_SECONDS)
+        )
         time.sleep(SLEEP_DURATION)
 
     log.error("LDAP not ready, after " + str(MAX_WAIT_SECONDS) + " seconds.")
@@ -161,7 +170,7 @@ if __name__ == "__main__":
 
     log.info(
         "Hi world, waiting for Consul, LDAP & oxauth to be ready before " +
-        " running " + str(sys.argv[1:])
+        "running " + " ".join(sys.argv[1:])
     )
     consul = consulate.Consul(host=GLUU_KV_HOST, port=GLUU_KV_PORT)
     wait_for_consul_to_be_up_and_populated(consul)
