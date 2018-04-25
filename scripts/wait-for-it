@@ -1,0 +1,179 @@
+#! /usr/bin/python2
+# -*- coding: utf-8-unix -*-
+
+## Checks waits for the following to happen before moving on to the
+## passed command:
+##
+## - consul is up and populated
+## - ldap is up and populated
+## - oxauth ODIC endpoint is up
+##
+## author: torstein@escenic.com
+
+import base64
+import consulate
+import ldap3
+import logging as log
+import os
+import pyDes
+import requests
+import sys
+import time
+
+GLUU_LDAP_URL = os.environ.get("GLUU_LDAP_URL", "ldap:1636")
+GLUU_KV_HOST = os.environ.get("GLUU_KV_HOST", "localhost")
+GLUU_KV_PORT = os.environ.get("GLUU_KV_PORT", 8500)
+GLUU_OXAUTH_BACKEND = os.environ.get("GLUU_OXAUTH_BACKEND", "oxauth:8080")
+
+MAX_WAIT_SECONDS = 300
+SLEEP_DURATION = 3
+LAST_CONSUL_KEY = "gluu/config/oxauth_openid_jwks_fn"
+
+
+def wait_for_consul_to_be_up_and_populated(consul):
+    for i in range(0, MAX_WAIT_SECONDS, SLEEP_DURATION):
+        try:
+            value = consul.kv.get(LAST_CONSUL_KEY)
+
+            if value is None:
+                log.debug(
+                    "Consul not populated yet, waiting for key=" +
+                    LAST_CONSUL_KEY + " " +
+                    str(i) + "/" + str(MAX_WAIT_SECONDS)
+                )
+            else:
+                log.info("Consul is populated :-)")
+                return 0
+
+        except requests.exceptions.ConnectionError:
+            log.debug(
+                "Consul not up yet, sleeping: " +
+                str(i) + "/" + str(MAX_WAIT_SECONDS)
+            )
+        time.sleep(SLEEP_DURATION)
+
+    log.error("Consul not ready, after " + str(MAX_WAIT_SECONDS) + " seconds.")
+    sys.exit(1)
+
+
+def get_ldap_password(consul):
+    encoded_password = consul.kv.get("gluu/config/encoded_ox_ldap_pw")
+    encoded_salt = consul.kv.get("gluu/config/encoded_salt")
+    cipher = pyDes.triple_des(
+        b"{}".format(encoded_salt),
+        pyDes.ECB,
+        padmode=pyDes.PAD_PKCS5
+    )
+    encrypted_text = b"{}".format(base64.b64decode(encoded_password))
+    return cipher.decrypt(encrypted_text)
+
+
+def wait_for_ldap_to_be_up_and_initialised(consul):
+    ldap_bind_dn = consul.kv.get("gluu/config/ldap_binddn")
+    ldap_password = get_ldap_password(consul)
+
+    ldap_host = GLUU_LDAP_URL.split(":")[0]
+    ldap_port = int(GLUU_LDAP_URL.split(":")[1])
+
+    ldap_server = ldap3.Server(
+        ldap_host,
+        ldap_port,
+        use_ssl=True
+    )
+    log.debug(
+        "LDAP trying ldaps://" + str(GLUU_LDAP_URL) +
+        " ldap_bind_dn=" + ldap_bind_dn
+    )
+
+    for i in range(0, MAX_WAIT_SECONDS, SLEEP_DURATION):
+        try:
+            with ldap3.Connection(
+                    ldap_server,
+                    ldap_bind_dn,
+                    ldap_password) as ldap_connection:
+
+                ldap_connection.search(
+                    search_base="o=gluu",
+                    search_filter="(oxScopeType=openid)",
+                    search_scope=ldap3.SUBTREE,
+                    attributes=['*']
+                )
+
+                if ldap_connection.entries:
+                    log.info("LDAP is up and populated :-)")
+                    return 0
+
+        except Exception as e:
+            log.debug(
+                "LDAP not yet initialised: " + str(e) + ", " +
+                "sleeping " + str(i) + "/" + str(MAX_WAIT_SECONDS)
+            )
+        log.debug(
+            "LDAP not yet initialised: " +
+            "sleeping " + str(i) + "/" + str(MAX_WAIT_SECONDS)
+        )
+        time.sleep(SLEEP_DURATION)
+
+    log.error("LDAP not ready, after " + str(MAX_WAIT_SECONDS) + " seconds.")
+    sys.exit(1)
+
+
+def wait_for_oxauth_to_be_up(consul):
+    url = "http://" + GLUU_OXAUTH_BACKEND + "/oxauth/.well-known/openid-configuration"
+    sleep_duration = 5
+    log.debug("Waiting for oxauth to be up url= " + url)
+    for i in range(0, MAX_WAIT_SECONDS, sleep_duration):
+        try:
+            r = requests.get(url)
+            if r.status_code == 200:
+                log.info("oxauth is up :-)")
+                return 0
+            else:
+                log.debug(
+                    "oxauth url=" + url + " is not up yet " +
+                    str(i) + "/" + str(MAX_WAIT_SECONDS)
+                )
+
+        except:
+            log.debug(
+                "oxauth url=" + url + " is not up yet error=" +
+                " " + str(i) + "/" + str(MAX_WAIT_SECONDS)
+            )
+
+        time.sleep(sleep_duration)
+
+    log.error("oxauth not ready, after " + str(MAX_WAIT_SECONDS) + " seconds.")
+    sys.exit(1)
+
+
+def execute_passed_command(command_list):
+    log.info(
+        "Now executing the arguments passed to " +
+        sys.argv[0] +
+        ": " +
+        " ".join(command_list)
+    )
+    os.system(" ".join(command_list))
+
+
+def configure_logger():
+  ## When debugging wait-for-it, set level=log.INFO or pass
+  ## --log=DEBUG on the command line.
+  log.basicConfig(
+      level=log.INFO,
+      format='%(asctime)s [%(levelname)s] [%(filename)s] - %(message)s'
+  )
+
+
+if __name__ == "__main__":
+    configure_logger()
+
+    log.info(
+        "Hi world, waiting for Consul, LDAP & oxauth to be ready before " +
+        "running " + " ".join(sys.argv[1:])
+    )
+    consul = consulate.Consul(host=GLUU_KV_HOST, port=GLUU_KV_PORT)
+    wait_for_consul_to_be_up_and_populated(consul)
+    wait_for_ldap_to_be_up_and_initialised(consul)
+    wait_for_oxauth_to_be_up(consul)
+    execute_passed_command(sys.argv[1:])
