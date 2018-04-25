@@ -74,5 +74,5 @@ There are 2 ways to run oxTrust with custom files:
         -v $PWD/custom/static:/opt/gluu/jetty/identity/custom/static \
         -v $PWD/custom/lib/ext:/opt/gluu/jetty/identity/lib/ext \
         -v $PWD/shared-shibboleth-idp:/opt/shared-shibboleth-idp \
-        gluufederation/identity:3.1.2_dev
+        gluufederation/oxtrust:3.1.2_dev
     ```
