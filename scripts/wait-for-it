@@ -121,22 +121,22 @@ def wait_for_ldap_to_be_up_and_initialised(consul):
 def wait_for_oxauth_to_be_up(consul):
     url = "http://" + GLUU_OXAUTH_BACKEND + "/oxauth/.well-known/openid-configuration"
     sleep_duration = 5
-    log.debug("Waiting for oxauth to be up url= " + url)
+    log.debug("Waiting for oxAuth to be up URL= " + url)
     for i in range(0, MAX_WAIT_SECONDS, sleep_duration):
         try:
             r = requests.get(url)
             if r.status_code == 200:
-                log.info("oxauth is up :-)")
+                log.info("oxAuth is up :-)")
                 return 0
             else:
                 log.debug(
-                    "oxAuth url=" + url + " is not up yet " +
+                    "oxAuth URL=" + url + " is not up yet " +
                     str(i) + "/" + str(MAX_WAIT_SECONDS)
                 )
 
         except Exception:
             log.debug(
-                "oxAuth url=" + url + " is not up yet error=" +
+                "oxAuth URL=" + url + " is not up yet error=" +
                 " " + str(i) + "/" + str(MAX_WAIT_SECONDS)
             )
 
