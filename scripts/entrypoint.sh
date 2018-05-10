@@ -54,8 +54,13 @@ fi
 sh /opt/scripts/shibwatcher.sh &
 
 cd /opt/gluu/jetty/identity
-exec java -jar /opt/jetty/start.jar -server \
-    -Xms256m -Xmx2048m -XX:+DisableExplicitGC \
+exec java -jar /opt/jetty/start.jar \
+    -server \
+    -Xms256m -Xmx2048m \
+    -XX:+UnlockExperimentalVMOptions \
+    -XX:+UseCGroupMemoryLimitForHeap \
+    -XX:MaxRAMFraction=$GLUU_MAX_RAM_FRACTION \
+    -XX:+DisableExplicitGC \
     -Dgluu.base=/etc/gluu \
     -Dserver.base=/opt/gluu/jetty/identity \
     -Dlog.base=/opt/gluu/jetty/identity \
