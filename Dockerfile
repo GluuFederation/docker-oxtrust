@@ -113,6 +113,8 @@ ENV GLUU_KV_PORT 8500
 ENV GLUU_CUSTOM_OXTRUST_URL ""
 ENV GLUU_SHIB_SOURCE_DIR /opt/shibboleth-idp
 ENV GLUU_SHIB_TARGET_DIR /opt/shared-shibboleth-idp
+ENV PYTHON_HOME=/opt/jython
+ENV GLUU_MAX_RAM_FRACTION 1
 
 VOLUME ${JETTY_BASE}/identity/custom/pages
 VOLUME ${JETTY_BASE}/identity/custom/static
@@ -122,4 +124,4 @@ VOLUME /opt/shared-shibboleth-idp
 
 COPY scripts /opt/scripts
 RUN chmod +x /opt/scripts/entrypoint.sh
-CMD ["/opt/scripts/entrypoint.sh"]
+CMD ["/opt/scripts/wait-for-it", "/opt/scripts/entrypoint.sh"]
