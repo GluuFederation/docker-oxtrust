@@ -26,16 +26,16 @@ docker run -d \
     -e GLUU_KV_PORT=8500 \
     -e GLUU_LDAP_URL=ldap.example.com:1636 \
     -v $PWD/shared-shibboleth-idp:/opt/shared-shibboleth-idp \
-    gluufederation/oxtrust:3.1.2_dev
+    gluufederation/oxtrust:3.1.3_dev
 ```
 
 *NOTE*: the use of `-v $PWD/shared-shibboleth-idp:/opt/shared-shibboleth-idp` is required if we want to add oxShibboleth container.
-See [oxShibboleth's Design Decisions](https://github.com/GluuFederation/docker-oxshibboleth/tree/3.1.2#design-decisions) section for details.
+See [oxShibboleth's Design Decisions](https://github.com/GluuFederation/docker-oxshibboleth/tree/3.1.3#design-decisions) section for details.
 
 ## Customizing oxTrust
 
 oxTrust can be customized by providing HTML pages, static resource files (i.e. CSS), or JAR libraries.
-Refer to https://gluu.org/docs/ce/3.1.2/operation/custom-design/ for an example on how to customize oxTrust.
+Refer to https://gluu.org/docs/ce/3.1.3/operation/custom-design/ for an example on how to customize oxTrust.
 
 There are 2 ways to run oxTrust with custom files:
 
@@ -50,7 +50,7 @@ There are 2 ways to run oxTrust with custom files:
         -e GLUU_LDAP_URL=ldap.example.com:1636 \
         -e GLUU_CUSTOM_OXTRUST_URL=http://files.example.com/resources/custom-oxtrust.tar.gz \
         -v $PWD/shared-shibboleth-idp:/opt/shared-shibboleth-idp \
-        gluufederation/oxtrust:3.1.2_dev
+        gluufederation/oxtrust:3.1.3_dev
     ```
 
     The `.tar.gz` file must consist of following directories:
@@ -74,5 +74,5 @@ There are 2 ways to run oxTrust with custom files:
         -v $PWD/custom/static:/opt/gluu/jetty/identity/custom/static \
         -v $PWD/custom/lib/ext:/opt/gluu/jetty/identity/lib/ext \
         -v $PWD/shared-shibboleth-idp:/opt/shared-shibboleth-idp \
-        gluufederation/oxtrust:3.1.2_dev
+        gluufederation/oxtrust:3.1.3_dev
     ```
