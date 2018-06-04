@@ -115,6 +115,7 @@ ENV GLUU_SHIB_SOURCE_DIR /opt/shibboleth-idp
 ENV GLUU_SHIB_TARGET_DIR /opt/shared-shibboleth-idp
 ENV PYTHON_HOME=/opt/jython
 ENV GLUU_MAX_RAM_FRACTION 1
+ENV GLUU_OXAUTH_BACKEND localhost:8081
 
 VOLUME ${JETTY_BASE}/identity/custom/pages
 VOLUME ${JETTY_BASE}/identity/custom/static

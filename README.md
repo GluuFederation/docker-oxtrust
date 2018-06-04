@@ -8,6 +8,9 @@ A docker image version of oxTrust.
 - `GLUU_KV_PORT`: port of Consul.
 - `GLUU_LDAP_URL`: URL to LDAP in `host:port` format string (i.e. `192.168.100.4:1636`); multiple URLs can be used using comma-separated value (i.e. `192.168.100.1:1636,192.168.100.2:1636`).
 - `GLUU_CUSTOM_OXTRUST_URL`: URL to downloadable custom oxTrust files packed using `.tar.gz` format.
+- `GLUU_OXAUTH_BACKEND`: the address of oxAuth backend, default to `localhost:8081`
+- `GLUU_SHIB_SOURCE_DIR`: absolute path to directory to copy Shibboleth config from (default to `/opt/shibboleth-idp`)
+- `GLUU_SHIB_TARGET_DIR`: absolute path to directory to copy Shibboleth config to (default to `/opt/shared-shibboleth-idp`)
 
 ## Volumes
 
