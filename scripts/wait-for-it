@@ -23,7 +23,7 @@ import time
 GLUU_LDAP_URL = os.environ.get("GLUU_LDAP_URL", "ldap:1636")
 GLUU_KV_HOST = os.environ.get("GLUU_KV_HOST", "localhost")
 GLUU_KV_PORT = os.environ.get("GLUU_KV_PORT", 8500)
-GLUU_OXAUTH_BACKEND = os.environ.get("GLUU_OXAUTH_BACKEND", "oxauth:8080")
+GLUU_OXAUTH_BACKEND = os.environ.get("GLUU_OXAUTH_BACKEND", "localhost:8081")
 
 MAX_WAIT_SECONDS = 300
 SLEEP_DURATION = 3
