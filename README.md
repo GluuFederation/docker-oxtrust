@@ -2,6 +2,28 @@
 
 A docker image version of oxTrust.
 
+## Latest Stable Release
+
+The latest stable release is `gluufederation/oxtrust:3.1.3_01`. Click [here](./CHANGES.md) for archived versions.
+
+## Versioning/Tagging
+
+This image uses its own versioning/tagging format.
+
+    <IMAGE-NAME>:<GLUU-SERVER-VERSION>_<RELEASE_VERSION>
+
+For example, `gluufederation/oxtrust:3.1.3_01` consists of:
+
+- `gluufederation/oxtrust` as `<IMAGE_NAME>`: the actual image name
+- `3.1.3` as `GLUU-SERVER-VERSION`: the Gluu Server version as setup reference
+- `01` as `<RELEASE_VERSION>`
+
+## Installation
+
+Pull the image:
+
+    docker pull gluufederation/oxtrust:3.1.3_01
+
 ## Environment Variables
 
 - `GLUU_KV_HOST`: hostname or IP address of Consul.
@@ -29,7 +51,7 @@ docker run -d \
     -e GLUU_KV_PORT=8500 \
     -e GLUU_LDAP_URL=ldap.example.com:1636 \
     -v $PWD/shared-shibboleth-idp:/opt/shared-shibboleth-idp \
-    gluufederation/oxtrust:3.1.3_dev
+    gluufederation/oxtrust:3.1.3_01
 ```
 
 *NOTE*: the use of `-v $PWD/shared-shibboleth-idp:/opt/shared-shibboleth-idp` is required if we want to add oxShibboleth container.
@@ -53,7 +75,7 @@ There are 2 ways to run oxTrust with custom files:
         -e GLUU_LDAP_URL=ldap.example.com:1636 \
         -e GLUU_CUSTOM_OXTRUST_URL=http://files.example.com/resources/custom-oxtrust.tar.gz \
         -v $PWD/shared-shibboleth-idp:/opt/shared-shibboleth-idp \
-        gluufederation/oxtrust:3.1.3_dev
+        gluufederation/oxtrust:3.1.3_01
     ```
 
     The `.tar.gz` file must consist of following directories:
@@ -77,5 +99,5 @@ There are 2 ways to run oxTrust with custom files:
         -v $PWD/custom/static:/opt/gluu/jetty/identity/custom/static \
         -v $PWD/custom/lib/ext:/opt/gluu/jetty/identity/lib/ext \
         -v $PWD/shared-shibboleth-idp:/opt/shared-shibboleth-idp \
-        gluufederation/oxtrust:3.1.3_dev
+        gluufederation/oxtrust:3.1.3_01
     ```
