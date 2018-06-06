@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 set -e
 
 import_ssl_cert() {
@@ -7,7 +7,7 @@ import_ssl_cert() {
         keytool -importcert -trustcacerts \
             -alias gluu_https \
             -file /etc/certs/gluu_https.der \
-            -keystore /usr/lib/jvm/default-java/jre/lib/security/cacerts \
+            -keystore /usr/lib/jvm/default-jvm/jre/lib/security/cacerts \
             -storepass changeit \
             -noprompt
     fi
@@ -34,18 +34,33 @@ download_custom_tar() {
     fi
 }
 
-
+pull_shared_shib_files() {
+    # sync with existing files in target directory (mapped volume)
+    mkdir -p "$GLUU_SHIB_TARGET_DIR" "$GLUU_SHIB_SOURCE_DIR"
+    if [ -n "$(ls -A $GLUU_SHIB_TARGET_DIR 2>/dev/null)" ]; then
+        cp -r $GLUU_SHIB_TARGET_DIR/* $GLUU_SHIB_SOURCE_DIR
+    fi
+}
 
 if [ ! -f /touched ]; then
     download_custom_tar
     python /opt/scripts/entrypoint.py
     import_ssl_cert
+    pull_shared_shib_files
     touch /touched
 fi
 
+# monitor filesystem changes on Shibboleth-related files
+sh /opt/scripts/shibwatcher.sh &
+
 cd /opt/gluu/jetty/identity
-exec gosu root java -jar /opt/jetty/start.jar -server \
-    -Xms256m -Xmx2048m -XX:+DisableExplicitGC \
+exec java -jar /opt/jetty/start.jar \
+    -server \
+    -Xms256m -Xmx2048m \
+    -XX:+UnlockExperimentalVMOptions \
+    -XX:+UseCGroupMemoryLimitForHeap \
+    -XX:MaxRAMFraction=$GLUU_MAX_RAM_FRACTION \
+    -XX:+DisableExplicitGC \
     -Dgluu.base=/etc/gluu \
     -Dserver.base=/opt/gluu/jetty/identity \
     -Dlog.base=/opt/gluu/jetty/identity \
