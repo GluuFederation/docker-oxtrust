@@ -33,6 +33,7 @@ Pull the image:
 - `GLUU_OXAUTH_BACKEND`: the address of oxAuth backend, default to `localhost:8081`
 - `GLUU_SHIB_SOURCE_DIR`: absolute path to directory to copy Shibboleth config from (default to `/opt/shibboleth-idp`)
 - `GLUU_SHIB_TARGET_DIR`: absolute path to directory to copy Shibboleth config to (default to `/opt/shared-shibboleth-idp`)
+- `GLUU_DEBUG_PORT`: port for remote debugging (if omitted, remote debugging will be disabled).
 
 ## Volumes
 
