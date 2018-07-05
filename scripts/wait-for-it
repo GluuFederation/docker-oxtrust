@@ -11,7 +11,6 @@
 # author: torstein@escenic.com
 
 import base64
-import consulate
 import ldap3
 import logging as log
 import os
@@ -20,45 +19,36 @@ import requests
 import sys
 import time
 
+from gluu_config import ConfigManager
+
 GLUU_LDAP_URL = os.environ.get("GLUU_LDAP_URL", "ldap:1636")
-GLUU_KV_HOST = os.environ.get("GLUU_KV_HOST", "localhost")
-GLUU_KV_PORT = os.environ.get("GLUU_KV_PORT", 8500)
 GLUU_OXAUTH_BACKEND = os.environ.get("GLUU_OXAUTH_BACKEND", "localhost:8081")
 
 MAX_WAIT_SECONDS = 300
 SLEEP_DURATION = 3
-LAST_CONSUL_KEY = "gluu/config/oxauth_openid_jwks_fn"
+LAST_CONFIG_KEY = "oxauth_openid_jwks_fn"
 
 
-def wait_for_consul_to_be_up_and_populated(consul):
+def wait_for_config(config_manager):
     for i in range(0, MAX_WAIT_SECONDS, SLEEP_DURATION):
         try:
-            value = consul.kv.get(LAST_CONSUL_KEY)
-
-            if value is None:
-                log.debug(
-                    "Consul not populated yet, waiting for key=" +
-                    LAST_CONSUL_KEY + " " +
-                    str(i) + "/" + str(MAX_WAIT_SECONDS)
-                )
-            else:
-                log.info("Consul is populated :-)")
-                return 0
-
-        except requests.exceptions.ConnectionError:
-            log.debug(
-                "Consul not up yet, sleeping: " +
-                str(i) + "/" + str(MAX_WAIT_SECONDS)
-            )
+            config_manager.get(LAST_CONFIG_KEY)
+            log.info("Config backend is ready.")
+            return
+        except Exception as exc:
+            log.warn(exc)
+            log.warn(
+                "Config backend is not ready, retrying in {} seconds.".format(
+                    SLEEP_DURATION))
         time.sleep(SLEEP_DURATION)
 
-    log.error("Consul not ready, after " + str(MAX_WAIT_SECONDS) + " seconds.")
+    log.error("Config backend is not ready after {} seconds.".format(MAX_WAIT_SECONDS))
     sys.exit(1)
 
 
-def get_ldap_password(consul):
-    encoded_password = consul.kv.get("gluu/config/encoded_ox_ldap_pw")
-    encoded_salt = consul.kv.get("gluu/config/encoded_salt")
+def get_ldap_password(config_manager):
+    encoded_password = config_manager.get("encoded_ox_ldap_pw")
+    encoded_salt = config_manager.get("encoded_salt")
     cipher = pyDes.triple_des(
         b"{}".format(encoded_salt),
         pyDes.ECB,
@@ -68,9 +58,9 @@ def get_ldap_password(consul):
     return cipher.decrypt(encrypted_text)
 
 
-def wait_for_ldap_to_be_up_and_initialised(consul):
-    ldap_bind_dn = consul.kv.get("gluu/config/ldap_binddn")
-    ldap_password = get_ldap_password(consul)
+def wait_for_ldap(config_manager):
+    ldap_bind_dn = config_manager.get("ldap_binddn")
+    ldap_password = get_ldap_password(config_manager)
 
     ldap_host = GLUU_LDAP_URL.split(":")[0]
     ldap_port = int(GLUU_LDAP_URL.split(":")[1])
@@ -118,7 +108,7 @@ def wait_for_ldap_to_be_up_and_initialised(consul):
     sys.exit(1)
 
 
-def wait_for_oxauth_to_be_up(consul):
+def wait_for_oxauth():
     url = "http://" + GLUU_OXAUTH_BACKEND + "/oxauth/.well-known/openid-configuration"
     sleep_duration = 5
     log.debug("Waiting for oxAuth to be up URL= " + url)
@@ -169,11 +159,11 @@ if __name__ == "__main__":
     configure_logger()
 
     log.info(
-        "Hi world, waiting for Consul, LDAP & oxAuth to be ready before " +
+        "Hi world, waiting for config backend, LDAP & oxAuth to be ready before " +
         "running " + " ".join(sys.argv[1:])
     )
-    consul = consulate.Consul(host=GLUU_KV_HOST, port=GLUU_KV_PORT)
-    wait_for_consul_to_be_up_and_populated(consul)
-    wait_for_ldap_to_be_up_and_initialised(consul)
-    wait_for_oxauth_to_be_up(consul)
+    config_manager = ConfigManager()
+    wait_for_config(config_manager)
+    wait_for_ldap(config_manager)
+    wait_for_oxauth()
     execute_passed_command(sys.argv[1:])
