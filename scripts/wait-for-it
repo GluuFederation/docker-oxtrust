@@ -32,9 +32,9 @@ LAST_CONFIG_KEY = "oxauth_openid_jwks_fn"
 def wait_for_config(config_manager):
     for i in range(0, MAX_WAIT_SECONDS, SLEEP_DURATION):
         try:
-            config_manager.get(LAST_CONFIG_KEY)
-            log.info("Config backend is ready.")
-            return
+            if config_manager.get(LAST_CONFIG_KEY):
+                log.info("Config backend is ready.")
+                return
         except Exception as exc:
             log.warn(exc)
             log.warn(

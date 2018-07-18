@@ -1,8 +1,10 @@
+import json
 import os
 
-from consul import Consul
+import six
 import kubernetes.client
 import kubernetes.config
+from consul import Consul
 
 # config storage adapter
 GLUU_CONFIG_ADAPTER = os.environ.get("GLUU_CONFIG_ADAPTER", "consul")
@@ -56,6 +58,11 @@ class BaseConfig(object):
         """
         raise NotImplementedError
 
+    def _prepare_value(self, value):
+        if not isinstance(value, (six.string_types, six.binary_type)):
+            value = json.dumps(value)
+        return value
+
 
 class ConsulConfig(BaseConfig):
     def __init__(self):
@@ -81,7 +88,8 @@ class ConsulConfig(BaseConfig):
         return result["Value"]
 
     def set(self, key, value):
-        return self.client.kv.put(self._merge_path(key), str(value))
+        return self.client.kv.put(self._merge_path(key),
+                                  self._prepare_value(value))
 
     def find(self, key):
         _, resultset = self.client.kv.get(self._merge_path(key),
@@ -141,7 +149,7 @@ class KubernetesConfig(BaseConfig):
                 "name": GLUU_KUBERNETES_CONFIGMAP,
             },
             "data": {
-                key: str(value),
+                key: self._prepare_value(value),
             }
         }
         return self.client.patch_namespaced_config_map(
