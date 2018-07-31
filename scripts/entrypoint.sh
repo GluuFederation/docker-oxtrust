@@ -54,31 +54,33 @@ fi
 sh /opt/scripts/shibwatcher.sh &
 
 get_java_opts() {
-  local java_opts="
-    -server \
-    -Xms256m \
-    -Xmx2048m \
-    -XX:+UnlockExperimentalVMOptions \
-    -XX:+UseCGroupMemoryLimitForHeap \
-    -XX:MaxRAMFraction=$GLUU_MAX_RAM_FRACTION \
-    -XX:+DisableExplicitGC \
-    -Dgluu.base=/etc/gluu \
-    -Dserver.base=/opt/gluu/jetty/identity \
-    -Dlog.base=/opt/gluu/jetty/identity \
-    -Dorg.eclipse.jetty.server.Request.maxFormContentSize=50000000 \
-    -Dpython.home=/opt/jython"
+    local java_opts="
+        -server \
+        -Xms256m \
+        -Xmx2048m \
+        -XX:+UnlockExperimentalVMOptions \
+        -XX:+UseCGroupMemoryLimitForHeap \
+        -XX:MaxRAMFraction=$GLUU_MAX_RAM_FRACTION \
+        -XX:+DisableExplicitGC \
+        -Dgluu.base=/etc/gluu \
+        -Dserver.base=/opt/gluu/jetty/identity \
+        -Dlog.base=/opt/gluu/jetty/identity \
+        -Dorg.eclipse.jetty.server.Request.maxFormContentSize=50000000 \
+        -Dpython.home=/opt/jython
 
-  if [ -n "${GLUU_DEBUG_PORT}" ]; then
-    java_opts="
-      ${java_opts}
-      -agentlib:jdwp=transport=dt_socket,address=${GLUU_DEBUG_PORT},server=y,suspend=n
     "
-  fi
 
-  printf "%s\n" "${java_opts}"
+    if [ -n "${GLUU_DEBUG_PORT}" ]; then
+        java_opts="
+            ${java_opts}
+            -agentlib:jdwp=transport=dt_socket,address=${GLUU_DEBUG_PORT},server=y,suspend=n
+        "
+    fi
+
+    echo "${java_opts}"
 }
 
 cd /opt/gluu/jetty/identity
 exec java \
-     $(get_java_opts)
+     $(get_java_opts) \
      -jar /opt/jetty/start.jar
