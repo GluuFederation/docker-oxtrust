@@ -1,34 +1,16 @@
 import base64
 import os
 
-import consulate
 import pyDes
+from gluu_config import ConfigManager
 
 GLUU_LDAP_URL = os.environ.get("GLUU_LDAP_URL", "localhost:1636")
-GLUU_KV_HOST = os.environ.get("GLUU_KV_HOST", "localhost")
-GLUU_KV_PORT = os.environ.get("GLUU_KV_PORT", 8500)
 
-consul = consulate.Consul(host=GLUU_KV_HOST, port=GLUU_KV_PORT)
-
-CONFIG_PREFIX = "gluu/config/"
-
-
-def merge_path(name):
-    # example: `hostname` renamed to `gluu/config/hostname`
-    return "".join([CONFIG_PREFIX, name])
-
-
-def unmerge_path(name):
-    # example: `gluu/config/hostname` renamed to `hostname`
-    return name[len(CONFIG_PREFIX):]
-
-
-def get_config(name, default=None):
-    return consul.kv.get(merge_path(name), default)
+config_manager = ConfigManager()
 
 
 def render_salt():
-    encode_salt = get_config("encoded_salt")
+    encode_salt = config_manager.get("encoded_salt")
 
     with open("/opt/templates/salt.tmpl") as fr:
         txt = fr.read()
@@ -43,25 +25,25 @@ def render_ldap_properties():
 
         with open("/etc/gluu/conf/ox-ldap.properties", "w") as fw:
             rendered_txt = txt % {
-                "ldap_binddn": get_config("ldap_binddn"),
-                "encoded_ox_ldap_pw": get_config("encoded_ox_ldap_pw"),
-                "inumAppliance": get_config("inumAppliance"),
+                "ldap_binddn": config_manager.get("ldap_binddn"),
+                "encoded_ox_ldap_pw": config_manager.get("encoded_ox_ldap_pw"),
+                "inumAppliance": config_manager.get("inumAppliance"),
                 "ldap_url": GLUU_LDAP_URL,
-                "ldapTrustStoreFn": get_config("ldapTrustStoreFn"),
-                "encoded_ldapTrustStorePass": get_config("encoded_ldapTrustStorePass"),
+                "ldapTrustStoreFn": config_manager.get("ldapTrustStoreFn"),
+                "encoded_ldapTrustStorePass": config_manager.get("encoded_ldapTrustStorePass"),
             }
             fw.write(rendered_txt)
 
 
 def render_ssl_cert():
-    ssl_cert = get_config("ssl_cert")
+    ssl_cert = config_manager.get("ssl_cert")
     if ssl_cert:
         with open("/etc/certs/gluu_https.crt", "w") as fd:
             fd.write(ssl_cert)
 
 
 def render_ssl_key():
-    ssl_key = get_config("ssl_key")
+    ssl_key = config_manager.get("ssl_key")
     if ssl_key:
         with open("/etc/certs/gluu_https.key", "w") as fd:
             fd.write(ssl_key)
@@ -75,48 +57,48 @@ def decrypt_text(encrypted_text, key):
 
 
 def sync_ldap_pkcs12():
-    pkcs = decrypt_text(get_config("ldap_pkcs12_base64"),
-                        get_config("encoded_salt"))
+    pkcs = decrypt_text(config_manager.get("ldap_pkcs12_base64"),
+                        config_manager.get("encoded_salt"))
 
-    with open(get_config("ldapTrustStoreFn"), "wb") as fw:
+    with open(config_manager.get("ldapTrustStoreFn"), "wb") as fw:
         fw.write(pkcs)
 
 
 def render_idp_cert():
-    cert = decrypt_text(get_config("shibIDP_cert"), get_config("encoded_salt"))
+    cert = decrypt_text(config_manager.get("shibIDP_cert"), config_manager.get("encoded_salt"))
     with open("/etc/certs/shibIDP.crt", "w") as fd:
         fd.write(cert)
 
 
 def render_idp_key():
-    cert = decrypt_text(get_config("shibIDP_key"), get_config("encoded_salt"))
+    cert = decrypt_text(config_manager.get("shibIDP_key"), config_manager.get("encoded_salt"))
     with open("/etc/certs/shibIDP.key", "w") as fd:
         fd.write(cert)
 
 
 def render_idp_signing_cert():
-    cert = get_config("idp3SigningCertificateText")
+    cert = config_manager.get("idp3SigningCertificateText")
     with open("/etc/certs/idp-signing.crt", "w") as fd:
         fd.write(cert)
 
 
 def render_idp_encryption_cert():
-    cert = get_config("idp3EncryptionCertificateText")
+    cert = config_manager.get("idp3EncryptionCertificateText")
     with open("/etc/certs/idp-encryption.crt", "w") as fd:
         fd.write(cert)
 
 
 def render_scim_rs_jks():
-    jks = decrypt_text(get_config("scim_rs_jks_base64"),
-                       get_config("encoded_salt"))
-    with open(get_config("scim_rs_client_jks_fn"), "w") as f:
+    jks = decrypt_text(config_manager.get("scim_rs_jks_base64"),
+                       config_manager.get("encoded_salt"))
+    with open(config_manager.get("scim_rs_client_jks_fn"), "w") as f:
         f.write(jks)
 
 
 def render_passport_rs_jks():
-    jks = decrypt_text(get_config("passport_rs_jks_base64"),
-                       get_config("encoded_salt"))
-    with open(get_config("passport_rs_client_jks_fn"), "w") as f:
+    jks = decrypt_text(config_manager.get("passport_rs_jks_base64"),
+                       config_manager.get("encoded_salt"))
+    with open(config_manager.get("passport_rs_client_jks_fn"), "w") as f:
         f.write(jks)
 
 
