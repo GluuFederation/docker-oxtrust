@@ -1,7 +1,6 @@
 FROM openjdk:jre-alpine
 
 LABEL maintainer="Gluu Inc. <support@gluu.org>"
-LABEL version="3.1.3"
 
 # ===============
 # Alpine packages
@@ -13,8 +12,6 @@ RUN apk update && apk add --no-cache \
     openssl \
     py-pip \
     ruby
-    
-    
 
 # =====
 # Jetty
@@ -63,8 +60,9 @@ ENV OXTRUST_DOWNLOAD_URL https://ox.gluu.org/maven/org/xdi/oxtrust-server/${OX_V
 # the LABEL defined before downloading ox war/jar files to make sure
 # it gets the latest build for specific version
 LABEL vendor="Gluu Federation" \
-      org.gluu.oxtrust-server.version="${OX_VERSION}" \
-      org.gluu.oxtrust-server.build-date="${OX_BUILD_DATE}"
+    version="3.1.3" \
+    org.gluu.oxtrust-server.version="${OX_VERSION}" \
+    org.gluu.oxtrust-server.build-date="${OX_BUILD_DATE}"
 
 # Install oxTrust
 RUN wget -q ${OXTRUST_DOWNLOAD_URL} -O /tmp/oxtrust.war \
