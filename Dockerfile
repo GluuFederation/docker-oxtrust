@@ -1,17 +1,20 @@
 FROM openjdk:jre-alpine
 
 LABEL maintainer="Gluu Inc. <support@gluu.org>"
+LABEL version="3.1.3"
 
 # ===============
 # Alpine packages
 # ===============
 
 RUN apk update && apk add --no-cache \
-    py-pip \
-    openssl \
-    ruby \
     coreutils \
-    inotify-tools
+    inotify-tools \
+    openssl \
+    py-pip \
+    ruby
+    
+    
 
 # =====
 # Jetty
@@ -97,6 +100,7 @@ RUN mkdir -p /etc/certs \
     && mkdir -p /etc/gluu/conf \
     && mkdir -p /var/ox/photos /var/ox/identity/removed /var/ox/identity/cr-snapshots \
     && mkdir -p ${JETTY_BASE}/identity/custom/pages ${JETTY_BASE}/identity/custom/static \
+    && mkdir -p ${JETTY_BASE}/identity/custom/i18n ${JETTY_BASE}/identity/custom/libs \
     && mkdir -p /opt/scripts \
     && mkdir -p /opt/templates
 
@@ -119,6 +123,8 @@ ENV GLUU_OXAUTH_BACKEND localhost:8081
 
 VOLUME ${JETTY_BASE}/identity/custom/pages
 VOLUME ${JETTY_BASE}/identity/custom/static
+VOLUME ${JETTY_BASE}/identity/custom/i18n
+VOLUME ${JETTY_BASE}/identity/custom/libs
 VOLUME ${JETTY_BASE}/identity/lib/ext
 VOLUME ${JETTY_BASE}/identity/logs
 VOLUME /opt/shared-shibboleth-idp

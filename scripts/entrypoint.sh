@@ -28,6 +28,14 @@ download_custom_tar() {
             cp -R /tmp/identity/static/ /opt/gluu/jetty/identity/custom/
         fi
 
+        if [ -d /tmp/identity/i18n ]; then
+            cp -R /tmp/identity/i18n/ /opt/gluu/jetty/identity/custom/
+        fi
+
+        if [ -d /tmp/identity/libs ]; then
+            cp -R /tmp/identity/libs/ /opt/gluu/jetty/identity/custom/
+        fi
+
         if [ -d /tmp/identity/lib/ext ]; then
             cp -R /tmp/identity/lib/ext/ /opt/gluu/jetty/identity/lib/
         fi
