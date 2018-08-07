@@ -11,7 +11,8 @@ RUN apk update && apk add --no-cache \
     inotify-tools \
     openssl \
     py-pip \
-    ruby
+    ruby \
+    wget
 
 # =====
 # Jetty
