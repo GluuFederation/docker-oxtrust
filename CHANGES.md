@@ -2,6 +2,12 @@
 
 Here you can see an overview of changes between each release.
 
+## Version 3.1.3_04
+
+Released on August 24th, 2018.
+
+* Added patches for Richfaces libraries.
+
 ## Version 3.1.3_03
 
 Released on July 31st, 2018.
