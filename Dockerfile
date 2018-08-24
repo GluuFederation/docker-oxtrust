@@ -7,11 +7,12 @@ LABEL maintainer="Gluu Inc. <support@gluu.org>"
 # ===============
 
 RUN apk update && apk add --no-cache \
-    py-pip \
-    openssl \
-    ruby \
     coreutils \
-    inotify-tools
+    inotify-tools \
+    openssl \
+    py-pip \
+    ruby \
+    wget
 
 # =====
 # Jetty
@@ -53,15 +54,16 @@ RUN wget -q ${JYTHON_DOWNLOAD_URL} -O /tmp/jython-installer.jar \
 # oxTrust
 # =======
 
-ENV OX_VERSION 3.1.3.Final
-ENV OX_BUILD_DATE 2018-04-30
+ENV OX_VERSION 3.1.3.1.Final
+ENV OX_BUILD_DATE 2018-08-10
 ENV OXTRUST_DOWNLOAD_URL https://ox.gluu.org/maven/org/xdi/oxtrust-server/${OX_VERSION}/oxtrust-server-${OX_VERSION}.war
 
 # the LABEL defined before downloading ox war/jar files to make sure
 # it gets the latest build for specific version
 LABEL vendor="Gluu Federation" \
-      org.gluu.oxtrust-server.version="${OX_VERSION}" \
-      org.gluu.oxtrust-server.build-date="${OX_BUILD_DATE}"
+    version="3.1.3.1" \
+    org.gluu.oxtrust-server.version="${OX_VERSION}" \
+    org.gluu.oxtrust-server.build-date="${OX_BUILD_DATE}"
 
 # Install oxTrust
 RUN wget -q ${OXTRUST_DOWNLOAD_URL} -O /tmp/oxtrust.war \
@@ -97,6 +99,7 @@ RUN mkdir -p /etc/certs \
     && mkdir -p /etc/gluu/conf \
     && mkdir -p /var/ox/photos /var/ox/identity/removed /var/ox/identity/cr-snapshots \
     && mkdir -p ${JETTY_BASE}/identity/custom/pages ${JETTY_BASE}/identity/custom/static \
+    && mkdir -p ${JETTY_BASE}/identity/custom/i18n ${JETTY_BASE}/identity/custom/libs \
     && mkdir -p /opt/scripts \
     && mkdir -p /opt/templates
 
@@ -119,6 +122,8 @@ ENV GLUU_OXAUTH_BACKEND localhost:8081
 
 VOLUME ${JETTY_BASE}/identity/custom/pages
 VOLUME ${JETTY_BASE}/identity/custom/static
+VOLUME ${JETTY_BASE}/identity/custom/i18n
+VOLUME ${JETTY_BASE}/identity/custom/libs
 VOLUME ${JETTY_BASE}/identity/lib/ext
 VOLUME ${JETTY_BASE}/identity/logs
 VOLUME /opt/shared-shibboleth-idp

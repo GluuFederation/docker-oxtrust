@@ -21,16 +21,20 @@ import time
 
 from gluu_config import ConfigManager
 
-GLUU_LDAP_URL = os.environ.get("GLUU_LDAP_URL", "ldap:1636")
+GLUU_LDAP_URL = os.environ.get("GLUU_LDAP_URL", "localhost:1636")
 GLUU_OXAUTH_BACKEND = os.environ.get("GLUU_OXAUTH_BACKEND", "localhost:8081")
 
-MAX_WAIT_SECONDS = 300
-SLEEP_DURATION = 3
+SLEEP_DURATION = 5
 LAST_CONFIG_KEY = "oxauth_openid_jwks_fn"
+
+try:
+    GLUU_WAIT_MAX_TIME = int(os.environ.get("GLUU_WAIT_MAX_TIME", 300))
+except ValueError:
+    GLUU_WAIT_MAX_TIME = 300
 
 
 def wait_for_config(config_manager):
-    for i in range(0, MAX_WAIT_SECONDS, SLEEP_DURATION):
+    for i in range(0, GLUU_WAIT_MAX_TIME, SLEEP_DURATION):
         try:
             if config_manager.get(LAST_CONFIG_KEY):
                 log.info("Config backend is ready.")
@@ -42,7 +46,7 @@ def wait_for_config(config_manager):
                     SLEEP_DURATION))
         time.sleep(SLEEP_DURATION)
 
-    log.error("Config backend is not ready after {} seconds.".format(MAX_WAIT_SECONDS))
+    log.error("Config backend is not ready after {} seconds.".format(GLUU_WAIT_MAX_TIME))
     sys.exit(1)
 
 
@@ -75,7 +79,7 @@ def wait_for_ldap(config_manager):
         " ldap_bind_dn=" + ldap_bind_dn
     )
 
-    for i in range(0, MAX_WAIT_SECONDS, SLEEP_DURATION):
+    for i in range(0, GLUU_WAIT_MAX_TIME, SLEEP_DURATION):
         try:
             with ldap3.Connection(
                     ldap_server,
@@ -96,15 +100,15 @@ def wait_for_ldap(config_manager):
         except Exception as e:
             log.debug(
                 "LDAP not yet initialised: " + str(e) + ", " +
-                "sleeping " + str(i) + "/" + str(MAX_WAIT_SECONDS)
+                "sleeping " + str(i) + "/" + str(GLUU_WAIT_MAX_TIME)
             )
         log.debug(
             "LDAP not yet initialised: " +
-            "sleeping " + str(i) + "/" + str(MAX_WAIT_SECONDS)
+            "sleeping " + str(i) + "/" + str(GLUU_WAIT_MAX_TIME)
         )
         time.sleep(SLEEP_DURATION)
 
-    log.error("LDAP not ready, after " + str(MAX_WAIT_SECONDS) + " seconds.")
+    log.error("LDAP not ready, after " + str(GLUU_WAIT_MAX_TIME) + " seconds.")
     sys.exit(1)
 
 
@@ -112,7 +116,7 @@ def wait_for_oxauth():
     url = "http://" + GLUU_OXAUTH_BACKEND + "/oxauth/.well-known/openid-configuration"
     sleep_duration = 5
     log.debug("Waiting for oxAuth to be up URL= " + url)
-    for i in range(0, MAX_WAIT_SECONDS, sleep_duration):
+    for i in range(0, GLUU_WAIT_MAX_TIME, sleep_duration):
         try:
             r = requests.get(url)
             if r.status_code == 200:
@@ -121,18 +125,18 @@ def wait_for_oxauth():
             else:
                 log.debug(
                     "oxAuth URL=" + url + " is not up yet " +
-                    str(i) + "/" + str(MAX_WAIT_SECONDS)
+                    str(i) + "/" + str(GLUU_WAIT_MAX_TIME)
                 )
 
         except Exception:
             log.debug(
                 "oxAuth URL=" + url + " is not up yet error=" +
-                " " + str(i) + "/" + str(MAX_WAIT_SECONDS)
+                " " + str(i) + "/" + str(GLUU_WAIT_MAX_TIME)
             )
 
         time.sleep(sleep_duration)
 
-    log.error("oxAuth not ready, after " + str(MAX_WAIT_SECONDS) + " seconds.")
+    log.error("oxAuth not ready, after " + str(GLUU_WAIT_MAX_TIME) + " seconds.")
     sys.exit(1)
 
 
