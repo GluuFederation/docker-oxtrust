@@ -88,7 +88,7 @@ RUN gem install facter --no-ri --no-rdoc
 # ======
 
 COPY requirements.txt /tmp/requirements.txt
-RUN source scl_source enable python227 \
+RUN source scl_source enable python27 \
     && pip install -U pip \
     && pip install --no-cache-dir -r /tmp/requirements.txt
 
