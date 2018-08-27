@@ -130,4 +130,5 @@ VOLUME /opt/shared-shibboleth-idp
 
 COPY scripts /opt/scripts
 RUN chmod +x /opt/scripts/entrypoint.sh
-CMD ["/opt/scripts/wait-for-it", "/opt/scripts/entrypoint.sh"]
+RUN chmod +x /opt/scripts/wait-for-it.sh
+CMD ["/opt/scripts/wait-for-it.sh", "/opt/scripts/entrypoint.sh"]
