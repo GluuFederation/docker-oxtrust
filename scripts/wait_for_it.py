@@ -1,4 +1,3 @@
-#! /usr/bin/python2
 # -*- coding: utf-8-unix -*-
 
 # Checks waits for the following to happen before moving on to the
