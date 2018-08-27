@@ -6,7 +6,11 @@ LABEL maintainer="Gluu Inc. <support@gluu.org>"
 # RHEL packages
 # =============
 RUN microdnf --enablerepo=rhel-server-rhscl-7-rpms --enablerepo=rhel-7-server-rpms install \
-    python27-python-pip openssl wget unzip java-1.8.0-openjdk-headless tar gzip inotify-tools coreutils ruby \
+    python27-python-pip openssl wget unzip java-1.8.0-openjdk-headless tar gzip coreutils ruby \
+    && wget https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm -O /tmp/epel-release-latest-7.noarch.rpm \
+    && rpm --import https://dl.fedoraproject.org/pub/epel/RPM-GPG-KEY-EPEL-7 \
+    && rpm --install -f /tmp/epel-release-latest-7.noarch.rpm \
+    && microdnf install inotify-tools \
     && microdnf update \
     && microdnf clean all
 
@@ -128,4 +132,5 @@ VOLUME /opt/shared-shibboleth-idp
 COPY scripts /opt/scripts
 RUN chmod +x /opt/scripts/entrypoint.sh
 RUN chmod +x /opt/scripts/wait-for-it.sh
+RUN mkdir -p /usr/lib/jvm/default-jvm && ln -s /usr/lib/jvm/jre /usr/lib/jvm/default-jvm/jre
 CMD ["/opt/scripts/wait-for-it.sh", "/opt/scripts/entrypoint.sh"]
