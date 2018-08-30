@@ -91,6 +91,14 @@ COPY requirements.txt /tmp/requirements.txt
 RUN pip install -U pip \
     && pip install --no-cache-dir -r /tmp/requirements.txt
 
+# ====
+# Tini
+# ====
+
+ENV TINI_VERSION v0.18.0
+RUN wget -q https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini-static -O /usr/bin/tini \
+    && chmod +x /usr/bin/tini
+
 # ==========
 # misc stuff
 # ==========
@@ -130,4 +138,5 @@ VOLUME /opt/shared-shibboleth-idp
 
 COPY scripts /opt/scripts
 RUN chmod +x /opt/scripts/entrypoint.sh
+ENTRYPOINT ["tini", "--"]
 CMD ["/opt/scripts/wait-for-it", "/opt/scripts/entrypoint.sh"]
