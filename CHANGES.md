@@ -2,6 +2,12 @@
 
 Here you can see an overview of changes between each release.
 
+## Version 3.1.3_06
+
+Released on September 12th, 2018.
+
+* Added feature to connect to secure Consul (HTTPS).
+
 ## Version 3.1.3_05
 
 Released on August 31st, 2018.
