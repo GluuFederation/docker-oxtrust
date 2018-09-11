@@ -107,21 +107,24 @@ class BaseConfig(object):
 class ConsulConfig(BaseConfig):
     def __init__(self):
         self.prefix = "gluu/config/"
-
         token = None
+        cert = None
+        verify = False
+
         if os.path.isfile(GLUU_CONSUL_TOKEN_FILE):
             with open(GLUU_CONSUL_TOKEN_FILE) as fr:
                 token = fr.read().strip()
 
-        cert = None
-        if all([os.path.isfile(GLUU_CONSUL_CERT_FILE),
-                os.path.isfile(GLUU_CONSUL_KEY_FILE)]):
-            cert = (GLUU_CONSUL_CERT_FILE, GLUU_CONSUL_KEY_FILE)
+        if GLUU_CONSUL_SCHEME == "https":
+            verify = as_boolean(GLUU_CONSUL_VERIFY)
 
-        verify = as_boolean(GLUU_CONSUL_VERIFY)
-        # verify using CA cert
-        if os.path.isfile(GLUU_CONSUL_CACERT_FILE):
-            verify = GLUU_CONSUL_CACERT_FILE
+            # verify using CA cert (if any)
+            if verify and os.path.isfile(GLUU_CONSUL_CACERT_FILE):
+                verify = GLUU_CONSUL_CACERT_FILE
+
+            if all([os.path.isfile(GLUU_CONSUL_CERT_FILE),
+                    os.path.isfile(GLUU_CONSUL_KEY_FILE)]):
+                cert = (GLUU_CONSUL_CERT_FILE, GLUU_CONSUL_KEY_FILE)
 
         self._request_warning(GLUU_CONSUL_SCHEME, verify)
 
