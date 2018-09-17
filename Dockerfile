@@ -55,7 +55,7 @@ RUN wget -q ${JYTHON_DOWNLOAD_URL} -O /tmp/jython-installer.jar \
 # =======
 
 ENV OX_VERSION 3.1.4-SNAPSHOT
-ENV OX_BUILD_DATE 2018-09-13
+ENV OX_BUILD_DATE 2018-09-15
 ENV OXTRUST_DOWNLOAD_URL https://ox.gluu.org/maven/org/xdi/oxtrust-server/${OX_VERSION}/oxtrust-server-${OX_VERSION}.war
 
 # the LABEL defined before downloading ox war/jar files to make sure
@@ -82,14 +82,6 @@ COPY jetty/web.xml ${JETTY_BASE}/identity/webapps/identity/WEB-INF/
 
 RUN gem install facter --no-ri --no-rdoc
 
-# ======
-# Python
-# ======
-
-COPY requirements.txt /tmp/requirements.txt
-RUN pip install -U pip \
-    && pip install --no-cache-dir -r /tmp/requirements.txt
-
 # ====
 # Tini
 # ====
@@ -97,6 +89,14 @@ RUN pip install -U pip \
 ENV TINI_VERSION v0.18.0
 RUN wget -q https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini-static -O /usr/bin/tini \
     && chmod +x /usr/bin/tini
+
+# ======
+# Python
+# ======
+
+COPY requirements.txt /tmp/requirements.txt
+RUN pip install -U pip \
+    && pip install --no-cache-dir -r /tmp/requirements.txt
 
 # ==========
 # misc stuff
