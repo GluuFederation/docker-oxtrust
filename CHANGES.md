@@ -2,6 +2,12 @@
 
 Here you can see an overview of changes between each release.
 
+## Version 3.1.3_07
+
+Released on September 18th, 2018.
+
+* Changed base image to use Alpine 3.8.1.
+
 ## Version 3.1.3_06
 
 Released on September 12th, 2018.
