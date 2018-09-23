@@ -2,6 +2,12 @@
 
 Here you can see an overview of changes between each release.
 
+## Version 3.1.3_08
+
+Released on September 24th, 2018.
+
+* Added missing certificates `httpd.crt` and `opendj.crt`/`openldap.crt`.
+
 ## Version 3.1.3_07
 
 Released on September 18th, 2018.
