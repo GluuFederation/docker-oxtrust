@@ -10,6 +10,9 @@ import_ssl_cert() {
             -keystore /usr/lib/jvm/default-jvm/jre/lib/security/cacerts \
             -storepass changeit \
             -noprompt
+
+        # satisfy oxTrust
+        ln -s /etc/certs/gluu_https.crt /etc/certs/httpd.crt
     fi
 }
 

@@ -1,4 +1,4 @@
-FROM openjdk:jre-alpine
+FROM openjdk:8-jre-alpine
 
 LABEL maintainer="Gluu Inc. <support@gluu.org>"
 
@@ -54,14 +54,13 @@ RUN wget -q ${JYTHON_DOWNLOAD_URL} -O /tmp/jython-installer.jar \
 # oxTrust
 # =======
 
-ENV OX_VERSION 3.1.3.1.Final
-ENV OX_BUILD_DATE 2018-08-10
+ENV OX_VERSION 3.1.4.Final
+ENV OX_BUILD_DATE 2018-09-28
 ENV OXTRUST_DOWNLOAD_URL https://ox.gluu.org/maven/org/xdi/oxtrust-server/${OX_VERSION}/oxtrust-server-${OX_VERSION}.war
 
 # the LABEL defined before downloading ox war/jar files to make sure
 # it gets the latest build for specific version
 LABEL vendor="Gluu Federation" \
-    version="3.1.3.1" \
     org.gluu.oxtrust-server.version="${OX_VERSION}" \
     org.gluu.oxtrust-server.build-date="${OX_BUILD_DATE}"
 
@@ -82,6 +81,14 @@ COPY jetty/web.xml ${JETTY_BASE}/identity/webapps/identity/WEB-INF/
 # ======
 
 RUN gem install facter --no-ri --no-rdoc
+
+# ====
+# Tini
+# ====
+
+ENV TINI_VERSION v0.18.0
+RUN wget -q https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini-static -O /usr/bin/tini \
+    && chmod +x /usr/bin/tini
 
 # ======
 # Python
@@ -110,9 +117,20 @@ COPY conf/oxTrustLogRotationConfiguration.xml /etc/gluu/conf/
 COPY conf/ox-ldap.properties.tmpl /opt/templates/
 COPY conf/salt.tmpl /opt/templates/
 
+
+ENV GLUU_CONFIG_ADAPTER consul
+ENV GLUU_CONSUL_HOST localhost
+ENV GLUU_CONSUL_PORT 8500
+ENV GLUU_CONSUL_CONSISTENCY stale
+ENV GLUU_CONSUL_SCHEME http
+ENV GLUU_CONSUL_VERIFY false
+ENV GLUU_CONSUL_CACERT_FILE /etc/certs/consul_ca.crt
+ENV GLUU_CONSUL_CERT_FILE /etc/certs/consul_client.crt
+ENV GLUU_CONSUL_KEY_FILE /etc/certs/consul_client.key
+ENV GLUU_CONSUL_TOKEN_FILE /etc/certs/consul_token
+ENV GLUU_KUBERNETES_NAMESPACE default
+ENV GLUU_KUBERNETES_CONFIGMAP gluu
 ENV GLUU_LDAP_URL localhost:1636
-ENV GLUU_KV_HOST localhost
-ENV GLUU_KV_PORT 8500
 ENV GLUU_CUSTOM_OXTRUST_URL ""
 ENV GLUU_SHIB_SOURCE_DIR /opt/shibboleth-idp
 ENV GLUU_SHIB_TARGET_DIR /opt/shared-shibboleth-idp
@@ -131,4 +149,6 @@ VOLUME /opt/shared-shibboleth-idp
 COPY scripts /opt/scripts
 RUN chmod +x /opt/scripts/entrypoint.sh
 RUN chmod +x /opt/scripts/wait-for-it.sh
+
+ENTRYPOINT ["tini", "--"]
 CMD ["/opt/scripts/wait-for-it.sh", "/opt/scripts/entrypoint.sh"]

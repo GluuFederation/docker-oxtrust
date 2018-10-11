@@ -64,6 +64,20 @@ def sync_ldap_pkcs12():
         fw.write(pkcs)
 
 
+def sync_ldap_cert():
+    cert = decrypt_text(config_manager.get("ldap_ssl_cert"),
+                        config_manager.get("encoded_salt"))
+
+    ldap_type = config_manager.get("ldap_type")
+    if ldap_type == "opendj":
+        cert_fn = "/etc/certs/opendj.crt"
+    else:
+        cert_fn = "/etc/certs/openldap.crt"
+
+    with open(cert_fn, "wb") as fw:
+        fw.write(cert)
+
+
 def render_idp_cert():
     cert = decrypt_text(config_manager.get("shibIDP_cert"), config_manager.get("encoded_salt"))
     with open("/etc/certs/shibIDP.crt", "w") as fd:
@@ -114,3 +128,4 @@ if __name__ == "__main__":
     render_scim_rs_jks()
     render_passport_rs_jks()
     sync_ldap_pkcs12()
+    sync_ldap_cert()
