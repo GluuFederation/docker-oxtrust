@@ -6,7 +6,7 @@ LABEL maintainer="Gluu Inc. <support@gluu.org>"
 # RHEL packages
 # =============
 RUN microdnf --enablerepo=rhel-server-rhscl-7-rpms --enablerepo=rhel-7-server-rpms install \
-    python27-python-pip openssl wget unzip java-1.8.0-openjdk-headless tar gzip coreutils ruby \
+    python27-python-pip openssl wget unzip java-1.8.0-openjdk-headless tar gzip coreutils ruby net-tools bind-utils iputils \
     && wget https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm -O /tmp/epel-release-latest-7.noarch.rpm \
     && rpm --import https://dl.fedoraproject.org/pub/epel/RPM-GPG-KEY-EPEL-7 \
     && rpm --install -f /tmp/epel-release-latest-7.noarch.rpm \
