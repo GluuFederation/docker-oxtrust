@@ -155,7 +155,8 @@ RUN mkdir -p /usr/lib/jvm/default-jvm && ln -s /usr/lib/jvm/jre /usr/lib/jvm/def
 # allow root group to write files to directories below
 RUN chgrp -R 0 /etc/certs && chmod -R g=u /etc/certs \
     && chgrp -R 0 ${JETTY_BASE} && chmod -R g=u ${JETTY_BASE} \
-    && chgrp -R 0 /etc/gluu/conf && chmod -R g=u /etc/gluu/conf
+    && chgrp -R 0 /etc/gluu/conf && chmod -R g=u /etc/gluu/conf \
+    && chgrp -R 0 /opt/shared-shibboleth-idp && chmod -R g=u /opt/shared-shibboleth-idp
 
 ENTRYPOINT ["tini", "--"]
 CMD ["/opt/scripts/wait-for-it.sh", "/opt/scripts/entrypoint.sh"]
