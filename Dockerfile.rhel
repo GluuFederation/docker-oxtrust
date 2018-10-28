@@ -170,6 +170,7 @@ RUN chown -R root:jetty /etc/certs \
     && chown -R jetty:jetty /flag \
     && chown -R jetty:jetty /opt/shared-shibboleth-idp \
     && chown -R jetty:jetty /opt/shibboleth-idp \
+    && chown -R jetty:jetty /var/ox \
     && chown root:jetty /usr/lib/jvm/default-jvm/jre/lib/security/cacerts \
     && chmod -R g+w /etc/certs \
     && chmod -R g+w /etc/gluu \
