@@ -140,34 +140,32 @@ ENV PYTHON_HOME=/opt/jython
 ENV GLUU_MAX_RAM_FRACTION 1
 ENV GLUU_OXAUTH_BACKEND localhost:8081
 
-VOLUME ${JETTY_BASE}/identity/custom/pages
-VOLUME ${JETTY_BASE}/identity/custom/static
-VOLUME ${JETTY_BASE}/identity/custom/i18n
-VOLUME ${JETTY_BASE}/identity/custom/libs
-VOLUME ${JETTY_BASE}/identity/lib/ext
-VOLUME ${JETTY_BASE}/identity/logs
-VOLUME /opt/shared-shibboleth-idp
-
 COPY scripts /opt/scripts
 RUN chmod +x /opt/scripts/entrypoint.sh
 RUN chmod +x /opt/scripts/wait-for-it.sh
 RUN mkdir -p /usr/lib/jvm/default-jvm && ln -s /usr/lib/jvm/jre /usr/lib/jvm/default-jvm/jre
 
 # create jetty user
-RUN useradd -ms /bin/sh jetty
-# adjust ownership
-RUN chown -R root:jetty /etc/certs \
-    && chown -R root:jetty /etc/gluu \
-    && chown -R jetty:jetty /opt/jetty \
-    && chown -R jetty:jetty /deploy \
-    && chown -R jetty:jetty /opt/shared-shibboleth-idp \
-    && chown -R jetty:jetty /opt/shibboleth-idp \
-    && chown -R jetty:jetty /var/ox \
-    && chown root:jetty /usr/lib/jvm/default-jvm/jre/lib/security/cacerts \
-    && chmod -R g+w /etc/certs \
-    && chmod -R g+w /etc/gluu \
-    && chmod -R g+w /usr/lib/jvm/default-jvm/jre/lib/security/cacerts
+RUN useradd -ms /bin/sh --uid 1000 jetty \
+    && usermod -a -G root jetty
 
-USER jetty
+# adjust ownership
+RUN chown -R 1000:1000 /opt/gluu/jetty \
+    && chown -R 1000:1000 /deploy \
+    && chown -R 1000:1000 /opt/shared-shibboleth-idp \
+    && chown -R 1000:1000 /opt/shibboleth-idp \
+    && chown -R 1000:1000 /var/ox \
+    && chmod -R g+w /usr/lib/jvm/default-jvm/jre/lib/security/cacerts \
+    && chgrp -R 0 /opt/gluu/jetty && chmod -R g=u /opt/gluu/jetty \
+    && chgrp -R 0 /opt/shared-shibboleth-idp && chmod -R g=u /opt/shared-shibboleth-idp \
+    && chgrp -R 0 /opt/shibboleth-idp && chmod -R g=u /opt/shibboleth-idp \
+    && chgrp -R 0 /etc/certs && chmod -R g=u /etc/certs \
+    && chgrp -R 0 /etc/gluu && chmod -R g=u /etc/gluu \
+    && chgrp -R 0 /deploy && chmod -R g=u /deploy \
+    && chgrp -R 0 /var/ox && chmod -R g=u /var/ox
+
+# run as non-root user
+USER 1000
+
 ENTRYPOINT ["tini", "--"]
 CMD ["/opt/scripts/wait-for-it.sh", "/opt/scripts/entrypoint.sh"]
