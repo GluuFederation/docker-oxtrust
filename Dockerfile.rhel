@@ -111,7 +111,8 @@ RUN mkdir -p /etc/certs /deploy /opt/shibboleth-idp \
     && mkdir -p ${JETTY_BASE}/identity/custom/pages ${JETTY_BASE}/identity/custom/static \
     && mkdir -p ${JETTY_BASE}/identity/custom/i18n ${JETTY_BASE}/identity/custom/libs \
     && mkdir -p /opt/scripts \
-    && mkdir -p /opt/templates
+    && mkdir -p /opt/templates \
+    && mkdir -p /opt/shared-shibboleth-idp
 
 # license
 RUN mkdir -p /licenses
