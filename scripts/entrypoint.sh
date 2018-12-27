@@ -51,7 +51,7 @@ get_java_opts() {
     echo "${java_opts}"
 }
 
-if [ ! -f /touched ]; then
+if [ ! -f /deploy/touched ]; then
     if [ -f /touched ]; then
         # backward-compat
         mv /touched /deploy/touched
