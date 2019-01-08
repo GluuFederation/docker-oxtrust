@@ -351,8 +351,20 @@ class VaultSecret(BaseSecret):
             if k.isupper() and k.startswith("GLUU_SECRET_VAULT_")
         }
         self.settings.setdefault(
-            "GLUU_SECRET_VAULT_URL",
-            "http://localhost:8200",
+            "GLUU_SECRET_VAULT_HOST",
+            "localhost",
+        )
+        self.settings.setdefault(
+            "GLUU_SECRET_VAULT_PORT",
+            8200,
+        )
+        self.settings.setdefault(
+            "GLUU_SECRET_VAULT_SCHEME",
+            "http",
+        )
+        self.settings.setdefault(
+            "GLUU_SECRET_VAULT_VERIFY",
+            False,
         )
         self.settings.setdefault(
             "GLUU_SECRET_VAULT_ROLE_ID_FILE",
@@ -376,19 +388,29 @@ class VaultSecret(BaseSecret):
         )
 
         cert = None
-        verify = self.settings["GLUU_SECRET_VAULT_URL"].startswith("https")
+        verify = False
 
-        # verify using CA cert (if any)
-        if verify and os.path.isfile(self.settings["GLUU_SECRET_VAULT_CACERT_FILE"]):
-            verify = self.settings["GLUU_SECRET_VAULT_CACERT_FILE"]
+        if self.settings["GLUU_SECRET_VAULT_SCHEME"] == "https":
+            verify = as_boolean(self.settings["GLUU_SECRET_VAULT_VERIFY"])
 
-        if all([os.path.isfile(self.settings["GLUU_SECRET_VAULT_CERT_FILE"]),
-                os.path.isfile(self.settings["GLUU_SECRET_VAULT_KEY_FILE"])]):
-            cert = (self.settings["GLUU_SECRET_VAULT_CERT_FILE"],
-                    self.settings["GLUU_SECRET_VAULT_KEY_FILE"])
+            # verify using CA cert (if any)
+            if all([verify,
+                    os.path.isfile(self.settings["GLUU_SECRET_VAULT_CACERT_FILE"])]):
+                verify = self.settings["GLUU_SECRET_VAULT_CACERT_FILE"]
+
+            if all([os.path.isfile(self.settings["GLUU_SECRET_VAULT_CERT_FILE"]),
+                    os.path.isfile(self.settings["GLUU_SECRET_VAULT_KEY_FILE"])]):
+                cert = (self.settings["GLUU_SECRET_VAULT_CERT_FILE"],
+                        self.settings["GLUU_SECRET_VAULT_KEY_FILE"])
+
+        self._request_warning(self.settings["GLUU_SECRET_VAULT_SCHEME"], verify)
 
         self.client = hvac.Client(
-            url=self.settings["GLUU_SECRET_VAULT_URL"],
+            url="{}://{}:{}".format(
+                self.settings["GLUU_SECRET_VAULT_SCHEME"],
+                self.settings["GLUU_SECRET_VAULT_HOST"],
+                self.settings["GLUU_SECRET_VAULT_PORT"],
+            ),
             cert=cert,
             verify=verify,
         )
@@ -435,6 +457,16 @@ class VaultSecret(BaseSecret):
         self._authenticate()
         result = self.client.list(self.prefix)
         return {key: self.get(key) for key in result["data"]["keys"]}
+
+    def _request_warning(self, scheme, verify):
+        if scheme == "https" and verify is False:
+            import urllib3
+            urllib3.disable_warnings()
+            logger.warn(
+                "All requests to Vault will be unverified. "
+                "Please adjust GLUU_SECRET_VAULT_SCHEME and "
+                "GLUU_SECRET_VAULT_VERIFY environment variables."
+            )
 
 
 class KubernetesSecret(BaseSecret):
