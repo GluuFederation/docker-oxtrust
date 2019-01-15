@@ -2,6 +2,18 @@
 
 Here you can see an overview of changes between each release.
 
+## Version 3.1.4_02
+
+Released on January 16th, 2019.
+
+* Added `http-forwarded` module to Jetty.
+
+## Version 3.1.4_01
+
+Released on November 12th, 2018.
+
+* Upgraded to Gluu Server 3.1.4.
+
 ## Version 3.1.3_08
 
 Released on September 24th, 2018.
