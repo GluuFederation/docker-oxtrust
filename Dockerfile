@@ -68,7 +68,7 @@ LABEL vendor="Gluu Federation" \
 RUN wget -q ${OXTRUST_DOWNLOAD_URL} -O /tmp/oxtrust.war \
     && mkdir -p ${JETTY_BASE}/identity/webapps/identity \
     && unzip -qq /tmp/oxtrust.war -d ${JETTY_BASE}/identity/webapps/identity \
-    && java -jar ${JETTY_HOME}/start.jar jetty.home=${JETTY_HOME} jetty.base=${JETTY_BASE}/identity --add-to-start=server,deploy,annotations,resources,http,jsp,ext,websocket \
+    && java -jar ${JETTY_HOME}/start.jar jetty.home=${JETTY_HOME} jetty.base=${JETTY_BASE}/identity --add-to-start=server,deploy,annotations,resources,http,http-forwarded,jsp,ext,websocket \
     && rm -f /tmp/oxtrust.war \
     && mkdir -p ${JETTY_BASE}/identity/conf \
     && unzip -q ${JETTY_BASE}/identity/webapps/identity/WEB-INF/lib/oxtrust-configuration-${OX_VERSION}.jar shibboleth3/* -d /opt/gluu/jetty/identity/conf \
