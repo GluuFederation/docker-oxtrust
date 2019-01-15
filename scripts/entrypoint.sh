@@ -57,9 +57,9 @@ if [ ! -f /deploy/touched ]; then
         mv /touched /deploy/touched
     else
         if [ -f /etc/redhat-release ]; then
-            source scl_source enable python27 && python /opt/scripts/wait_for.py --deps="config,secret" && python /opt/scripts/entrypoint.py
+            source scl_source enable python27 && python /opt/scripts/wait_for.py --deps="config,secret,ldap,oxauth" && python /opt/scripts/entrypoint.py
         else
-            python /opt/scripts/wait_for.py --deps="config,secret" && python /opt/scripts/entrypoint.py
+            python /opt/scripts/wait_for.py --deps="config,secret,ldap,oxauth" && python /opt/scripts/entrypoint.py
         fi
 
         import_ssl_cert
@@ -70,12 +70,6 @@ fi
 
 # monitor filesystem changes on Shibboleth-related files
 sh /opt/scripts/shibwatcher.sh &
-
-if [ -f /etc/redhat-release ]; then
-    source scl_source enable python27 && python /opt/scripts/wait_for.py --deps="ldap,oxauth"
-else
-    python /opt/scripts/wait_for.py --deps="ldap,oxauth"
-fi
 
 cd /opt/gluu/jetty/identity
 exec java \

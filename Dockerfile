@@ -167,27 +167,27 @@ COPY conf/salt.tmpl /opt/templates/
 COPY scripts /opt/scripts
 RUN chmod +x /opt/scripts/entrypoint.sh
 
-# create jetty user
-RUN useradd -ms /bin/sh --uid 1000 jetty \
-    && usermod -a -G root jetty
+# # create jetty user
+# RUN useradd -ms /bin/sh --uid 1000 jetty \
+#     && usermod -a -G root jetty
 
-# adjust ownership
-RUN chown -R 1000:1000 /opt/gluu/jetty \
-    && chown -R 1000:1000 /deploy \
-    && chown -R 1000:1000 /opt/shared-shibboleth-idp \
-    && chown -R 1000:1000 /opt/shibboleth-idp \
-    && chown -R 1000:1000 /var/ox \
-    && chmod -R g+w /usr/lib/jvm/default-jvm/jre/lib/security/cacerts \
-    && chgrp -R 0 /opt/gluu/jetty && chmod -R g=u /opt/gluu/jetty \
-    && chgrp -R 0 /opt/shared-shibboleth-idp && chmod -R g=u /opt/shared-shibboleth-idp \
-    && chgrp -R 0 /opt/shibboleth-idp && chmod -R g=u /opt/shibboleth-idp \
-    && chgrp -R 0 /etc/certs && chmod -R g=u /etc/certs \
-    && chgrp -R 0 /etc/gluu && chmod -R g=u /etc/gluu \
-    && chgrp -R 0 /deploy && chmod -R g=u /deploy \
-    && chgrp -R 0 /var/ox && chmod -R g=u /var/ox
+# # adjust ownership
+# RUN chown -R 1000:1000 /opt/gluu/jetty \
+#     && chown -R 1000:1000 /deploy \
+#     && chown -R 1000:1000 /opt/shared-shibboleth-idp \
+#     && chown -R 1000:1000 /opt/shibboleth-idp \
+#     && chown -R 1000:1000 /var/ox \
+#     && chmod -R g+w /usr/lib/jvm/default-jvm/jre/lib/security/cacerts \
+#     && chgrp -R 0 /opt/gluu/jetty && chmod -R g=u /opt/gluu/jetty \
+#     && chgrp -R 0 /opt/shared-shibboleth-idp && chmod -R g=u /opt/shared-shibboleth-idp \
+#     && chgrp -R 0 /opt/shibboleth-idp && chmod -R g=u /opt/shibboleth-idp \
+#     && chgrp -R 0 /etc/certs && chmod -R g=u /etc/certs \
+#     && chgrp -R 0 /etc/gluu && chmod -R g=u /etc/gluu \
+#     && chgrp -R 0 /deploy && chmod -R g=u /deploy \
+#     && chgrp -R 0 /var/ox && chmod -R g=u /var/ox
 
-# run as non-root user
-USER 1000
+# # run as non-root user
+# USER 1000
 
 ENTRYPOINT ["tini", "-g", "--"]
 CMD ["/opt/scripts/entrypoint.sh"]
