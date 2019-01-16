@@ -229,6 +229,11 @@ class KubernetesConfig(BaseConfig):
             os.environ.get("GLUU_KUBERNETES_CONFIGMAP", "gluu"),
         )
 
+        self.settings.setdefault(
+            "GLUU_CONFIG_KUBERNETES_USE_KUBE_CONFIG",
+            False
+        )
+
         if as_boolean(self.settings["GLUU_CONFIG_KUBERNETES_USE_KUBE_CONFIG"]):
             kubernetes.config.load_kube_config()
         else:
