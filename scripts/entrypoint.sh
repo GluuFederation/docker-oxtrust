@@ -51,15 +51,21 @@ get_java_opts() {
     echo "${java_opts}"
 }
 
+if [ -f /etc/redhat-release ]; then
+    source scl_source enable python27 && python /opt/scripts/wait_for.py --deps="config,secret,ldap,oxauth"
+else
+    python /opt/scripts/wait_for.py --deps="config,secret,ldap,oxauth"
+fi
+
 if [ ! -f /deploy/touched ]; then
     if [ -f /touched ]; then
         # backward-compat
         mv /touched /deploy/touched
     else
         if [ -f /etc/redhat-release ]; then
-            source scl_source enable python27 && python /opt/scripts/wait_for.py --deps="config,secret,ldap,oxauth" && python /opt/scripts/entrypoint.py
+            source scl_source enable python27 && python /opt/scripts/entrypoint.py
         else
-            python /opt/scripts/wait_for.py --deps="config,secret,ldap,oxauth" && python /opt/scripts/entrypoint.py
+            python /opt/scripts/entrypoint.py
         fi
 
         import_ssl_cert
