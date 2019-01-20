@@ -23,15 +23,15 @@ logger.addHandler(ch)
 def wait_for_config(manager, max_wait_time, sleep_duration):
     for i in range(0, max_wait_time, sleep_duration):
         try:
-            # we don't care about the result, we only need to test
-            # the connection
-            manager.config.get("hostname")
-            logger.info("Config backend is ready.")
-            return
+            reason = "config 'hostname' is not available"
+            if manager.config.get("hostname"):
+                logger.info("Config backend is ready.")
+                return
         except Exception as exc:
-            logger.warn(
-                "Config backend is not ready; reason={}; retrying in {} seconds.".format(
-                    exc, sleep_duration))
+            reason = exc
+
+        logger.warn("Config backend is not ready; reason={}; "
+                    "retrying in {} seconds.".format(reason, sleep_duration))
         time.sleep(sleep_duration)
 
     logger.error("Config backend is not ready after {} seconds.".format(max_wait_time))
@@ -41,15 +41,15 @@ def wait_for_config(manager, max_wait_time, sleep_duration):
 def wait_for_secret(manager, max_wait_time, sleep_duration):
     for i in range(0, max_wait_time, sleep_duration):
         try:
-            # we don't care about the result, we only need to test
-            # the connection
-            manager.secret.get("ssl_cert")
-            logger.info("Secret backend is ready.")
-            return
+            reason = "secret 'ssl_cert' is not available"
+            if manager.secret.get("ssl_cert"):
+                logger.info("Secret backend is ready.")
+                return
         except Exception as exc:
-            logger.warn(
-                "Secret backend is not ready; reason={}; retrying in {} seconds.".format(
-                    exc, sleep_duration))
+            reason = exc
+
+        logger.warn("Secret backend is not ready; reason={}; "
+                    "retrying in {} seconds.".format(reason, sleep_duration))
         time.sleep(sleep_duration)
 
     logger.error("Secret backend is not ready after {} seconds.".format(max_wait_time))
