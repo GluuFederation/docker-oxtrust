@@ -2,7 +2,7 @@
 
 set -e
 
-GLUU_VERSION=3.1.5
+GLUU_VERSION=3.1.6
 IMAGE_NAME="gluufederation/oxtrust"
 UNSTABLE_VERSION="dev"
 STABLE_VERSION=${STABLE_VERSION:-""}
