@@ -1,4 +1,4 @@
-FROM gluufederation/base-openjdk:jre-alpine
+FROM openjdk:8-jre-alpine
 
 LABEL maintainer="Gluu Inc. <support@gluu.org>"
 
@@ -54,14 +54,13 @@ RUN wget -q ${JYTHON_DOWNLOAD_URL} -O /tmp/jython-installer.jar \
 # oxTrust
 # =======
 
-ENV OX_VERSION 3.1.3.1.Final
-ENV OX_BUILD_DATE 2018-08-10
+ENV OX_VERSION 3.1.4.Final
+ENV OX_BUILD_DATE 2018-09-28
 ENV OXTRUST_DOWNLOAD_URL https://ox.gluu.org/maven/org/xdi/oxtrust-server/${OX_VERSION}/oxtrust-server-${OX_VERSION}.war
 
 # the LABEL defined before downloading ox war/jar files to make sure
 # it gets the latest build for specific version
 LABEL vendor="Gluu Federation" \
-    version="3.1.3.1" \
     org.gluu.oxtrust-server.version="${OX_VERSION}" \
     org.gluu.oxtrust-server.build-date="${OX_BUILD_DATE}"
 
@@ -69,7 +68,7 @@ LABEL vendor="Gluu Federation" \
 RUN wget -q ${OXTRUST_DOWNLOAD_URL} -O /tmp/oxtrust.war \
     && mkdir -p ${JETTY_BASE}/identity/webapps/identity \
     && unzip -qq /tmp/oxtrust.war -d ${JETTY_BASE}/identity/webapps/identity \
-    && java -jar ${JETTY_HOME}/start.jar jetty.home=${JETTY_HOME} jetty.base=${JETTY_BASE}/identity --add-to-start=server,deploy,annotations,resources,http,jsp,ext,websocket \
+    && java -jar ${JETTY_HOME}/start.jar jetty.home=${JETTY_HOME} jetty.base=${JETTY_BASE}/identity --add-to-start=server,deploy,annotations,resources,http,http-forwarded,jsp,ext,websocket \
     && rm -f /tmp/oxtrust.war \
     && mkdir -p ${JETTY_BASE}/identity/conf \
     && unzip -q ${JETTY_BASE}/identity/webapps/identity/WEB-INF/lib/oxtrust-configuration-${OX_VERSION}.jar shibboleth3/* -d /opt/gluu/jetty/identity/conf \
@@ -83,14 +82,6 @@ COPY jetty/web.xml ${JETTY_BASE}/identity/webapps/identity/WEB-INF/
 
 RUN gem install facter --no-ri --no-rdoc
 
-# ======
-# Python
-# ======
-
-COPY requirements.txt /tmp/requirements.txt
-RUN pip install -U pip \
-    && pip install --no-cache-dir -r /tmp/requirements.txt
-
 # ====
 # Tini
 # ====
@@ -98,6 +89,14 @@ RUN pip install -U pip \
 ENV TINI_VERSION v0.18.0
 RUN wget -q https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini-static -O /usr/bin/tini \
     && chmod +x /usr/bin/tini
+
+# ======
+# Python
+# ======
+
+COPY requirements.txt /tmp/requirements.txt
+RUN pip install -U pip \
+    && pip install --no-cache-dir -r /tmp/requirements.txt
 
 # ==========
 # misc stuff

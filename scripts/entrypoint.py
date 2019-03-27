@@ -67,11 +67,13 @@ def sync_ldap_pkcs12():
 def sync_ldap_cert():
     cert = decrypt_text(config_manager.get("ldap_ssl_cert"),
                         config_manager.get("encoded_salt"))
+
     ldap_type = config_manager.get("ldap_type")
     if ldap_type == "opendj":
         cert_fn = "/etc/certs/opendj.crt"
     else:
         cert_fn = "/etc/certs/openldap.crt"
+
     with open(cert_fn, "wb") as fw:
         fw.write(cert)
 
