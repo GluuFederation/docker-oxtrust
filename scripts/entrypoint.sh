@@ -16,35 +16,6 @@ import_ssl_cert() {
     fi
 }
 
-download_custom_tar() {
-    if [ ! -z ${GLUU_CUSTOM_OXTRUST_URL} ]; then
-        mkdir -p /tmp/identity
-        wget -q ${GLUU_CUSTOM_OXTRUST_URL} -O /tmp/identity/custom-identity.tar.gz
-        cd /tmp/identity
-        tar xf custom-identity.tar.gz
-
-        if [ -d /tmp/identity/pages ]; then
-            cp -R /tmp/identity/pages/ /opt/gluu/jetty/identity/custom/
-        fi
-
-        if [ -d /tmp/identity/static ]; then
-            cp -R /tmp/identity/static/ /opt/gluu/jetty/identity/custom/
-        fi
-
-        if [ -d /tmp/identity/i18n ]; then
-            cp -R /tmp/identity/i18n/ /opt/gluu/jetty/identity/custom/
-        fi
-
-        if [ -d /tmp/identity/libs ]; then
-            cp -R /tmp/identity/libs/ /opt/gluu/jetty/identity/custom/
-        fi
-
-        if [ -d /tmp/identity/lib/ext ]; then
-            cp -R /tmp/identity/lib/ext/ /opt/gluu/jetty/identity/lib/
-        fi
-    fi
-}
-
 pull_shared_shib_files() {
     # sync with existing files in target directory (mapped volume)
     mkdir -p "$GLUU_SHIB_TARGET_DIR" "$GLUU_SHIB_SOURCE_DIR"
@@ -52,17 +23,6 @@ pull_shared_shib_files() {
         cp -r $GLUU_SHIB_TARGET_DIR/* $GLUU_SHIB_SOURCE_DIR
     fi
 }
-
-if [ ! -f /touched ]; then
-    download_custom_tar
-    python /opt/scripts/entrypoint.py
-    import_ssl_cert
-    pull_shared_shib_files
-    touch /touched
-fi
-
-# monitor filesystem changes on Shibboleth-related files
-sh /opt/scripts/shibwatcher.sh &
 
 get_java_opts() {
     local java_opts="
@@ -90,6 +50,32 @@ get_java_opts() {
 
     echo "${java_opts}"
 }
+
+if [ -f /etc/redhat-release ]; then
+    source scl_source enable python27 && python /opt/scripts/wait_for.py --deps="config,secret,ldap,oxauth"
+else
+    python /opt/scripts/wait_for.py --deps="config,secret,ldap,oxauth"
+fi
+
+if [ ! -f /deploy/touched ]; then
+    if [ -f /touched ]; then
+        # backward-compat
+        mv /touched /deploy/touched
+    else
+        if [ -f /etc/redhat-release ]; then
+            source scl_source enable python27 && python /opt/scripts/entrypoint.py
+        else
+            python /opt/scripts/entrypoint.py
+        fi
+
+        import_ssl_cert
+        pull_shared_shib_files
+        touch /deploy/touched
+    fi
+fi
+
+# monitor filesystem changes on Shibboleth-related files
+sh /opt/scripts/shibwatcher.sh &
 
 cd /opt/gluu/jetty/identity
 exec java \
