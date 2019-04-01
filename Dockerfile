@@ -98,6 +98,13 @@ COPY requirements.txt /tmp/requirements.txt
 RUN pip install -U pip \
     && pip install --no-cache-dir -r /tmp/requirements.txt
 
+# =======
+# License
+# =======
+
+RUN mkdir -p /licenses
+COPY LICENSE /licenses/
+
 # ==========
 # misc stuff
 # ==========
@@ -137,16 +144,10 @@ ENV GLUU_SHIB_TARGET_DIR /opt/shared-shibboleth-idp
 ENV PYTHON_HOME=/opt/jython
 ENV GLUU_MAX_RAM_FRACTION 1
 ENV GLUU_OXAUTH_BACKEND localhost:8081
-
-VOLUME ${JETTY_BASE}/identity/custom/pages
-VOLUME ${JETTY_BASE}/identity/custom/static
-VOLUME ${JETTY_BASE}/identity/custom/i18n
-VOLUME ${JETTY_BASE}/identity/custom/libs
-VOLUME ${JETTY_BASE}/identity/lib/ext
-VOLUME ${JETTY_BASE}/identity/logs
-VOLUME /opt/shared-shibboleth-idp
+ENV GLUU_AUTO_ACCEPT_LICENSE false
 
 COPY scripts /opt/scripts
 RUN chmod +x /opt/scripts/entrypoint.sh
+RUN chmod +x /opt/scripts/license_checker.py
 ENTRYPOINT ["tini", "--"]
-CMD ["/opt/scripts/wait-for-it", "/opt/scripts/entrypoint.sh"]
+CMD ["/opt/scripts/license_checker.py", "/opt/scripts/wait-for-it", "/opt/scripts/entrypoint.sh"]
