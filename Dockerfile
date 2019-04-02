@@ -144,7 +144,7 @@ ENV GLUU_SHIB_TARGET_DIR /opt/shared-shibboleth-idp
 ENV PYTHON_HOME=/opt/jython
 ENV GLUU_MAX_RAM_FRACTION 1
 ENV GLUU_OXAUTH_BACKEND localhost:8081
-ENV GLUU_AUTO_ACCEPT_LICENSE false
+ENV GLUU_AUTO_ACK_LICENSE false
 
 COPY scripts /opt/scripts
 RUN chmod +x /opt/scripts/entrypoint.sh

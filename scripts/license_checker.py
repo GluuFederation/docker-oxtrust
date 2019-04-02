@@ -21,20 +21,32 @@ def execute_passed_command(command_list):
 
 
 def main():
-    if not os.path.isfile("/license_ack"):
-        # license prompt
-        GLUU_AUTO_ACCEPT_LICENSE = os.environ.get("GLUU_AUTO_ACCEPT_LICENSE", False)
+    GLUU_AUTO_ACK_LICENSE = os.environ.get("GLUU_AUTO_ACK_LICENSE", False)
 
-        if not as_boolean(GLUU_AUTO_ACCEPT_LICENSE):
-            click.echo("Gluu License Agreement: https://github.com/GluuFederation/gluu-docker/blob/3.1.4/LICENSE")
-            click.echo("")
+    # don't show a prompt if one of the following flags is true:
+    # 1. `GLUU_AUTO_ACK_LICENSE` is set to truthy value
+    # 2. `/licenses/ack` file is exist
+    skip_prompt = any([
+        as_boolean(GLUU_AUTO_ACK_LICENSE) is True,
+        os.path.isfile("/licenses/ack"),
+    ])
 
+    # show a prompt (if needed)
+    if not skip_prompt:
+        click.echo("Gluu License Agreement: https://github.com/GluuFederation/gluu-docker/blob/3.1.4/LICENSE")
+
+        try:
             if not click.confirm("Do you acknowledge that use of Gluu Server Docker Edition is subject to the Gluu Support License"):
+                click.echo("Error: unable to proceed without license acknowledgement ... exiting")
                 sys.exit(1)
-
+        except click.exceptions.Abort:
             click.echo("")
-            # create a flag
-            with open("/license_ack", "w") as fw:
+            click.echo("Error: unable to proceed without an interactive process ... exiting")
+            sys.exit(1)
+        else:
+            click.echo("")
+            # create a flag to avoid showing the prompt again in subsequent runs
+            with open("/licenses/ack", "w") as fw:
                 fw.write("")
 
     # execute next command
