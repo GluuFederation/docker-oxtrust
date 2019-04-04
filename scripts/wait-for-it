@@ -32,6 +32,14 @@ try:
 except ValueError:
     GLUU_WAIT_MAX_TIME = 300
 
+LICENSE_ACK = """
+# ========================================================================================= #
+# Gluu License Agreement: https://github.com/GluuFederation/gluu-docker/blob/3.1.4/LICENSE. #
+# The use of Gluu Server Docker Edition is subject to the Gluu Support License.             #
+# ========================================================================================= #
+
+"""
+
 
 def wait_for_config(config_manager):
     for i in range(0, GLUU_WAIT_MAX_TIME, SLEEP_DURATION):
@@ -160,6 +168,8 @@ def configure_logger():
 
 
 if __name__ == "__main__":
+    print LICENSE_ACK
+
     configure_logger()
 
     log.info(
