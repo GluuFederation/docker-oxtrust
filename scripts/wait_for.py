@@ -155,7 +155,7 @@ def wait_for_oxauth(manager, max_wait_time, sleep_duration):
                 return 0
             else:
                 logger.warn(
-                    "oxAuth {} is not ready; retrying in {} seconds".format(url, max_wait_time)
+                    "oxAuth {} is not ready; retrying in {} seconds".format(url, sleep_duration)
                 )
         except Exception as exc:
             logger.warn(
