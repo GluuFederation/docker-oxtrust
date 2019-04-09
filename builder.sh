@@ -7,7 +7,7 @@ IMAGE_NAME="gluufederation/oxtrust"
 UNSTABLE_VERSION="dev"
 STABLE_VERSION=${STABLE_VERSION:-""}
 
-# force to use branch 3.1.5
+# force to use branch 3.1.6
 echo "[I] Switching to git branch ${GLUU_VERSION}"
 git checkout $GLUU_VERSION
 
