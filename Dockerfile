@@ -52,9 +52,9 @@ RUN wget -q ${JYTHON_DOWNLOAD_URL} -O /tmp/jython-installer.jar \
 # oxTrust
 # =======
 
-ENV OX_VERSION 3.1.6.Final
-ENV OX_BUILD_DATE 2019-03-22
-ENV OXTRUST_DOWNLOAD_URL https://ox.gluu.org/maven/org/xdi/oxtrust-server/${OX_VERSION}/oxtrust-server-${OX_VERSION}.war
+ENV OX_VERSION 4.0.0-SNAPSHOT
+ENV OX_BUILD_DATE 2019-05-01
+ENV OXTRUST_DOWNLOAD_URL https://ox.gluu.org/maven/org/gluu/oxtrust-server/${OX_VERSION}/oxtrust-server-${OX_VERSION}.war
 
 # the LABEL defined before downloading ox war/jar files to make sure
 # it gets the latest build for specific version
@@ -167,7 +167,7 @@ COPY jetty/identity_web_resources.xml ${JETTY_BASE}/identity/webapps/
 # COPY jetty/idp-metadata.xml.vm ${JETTY_BASE}/identity/conf/shibboleth3/idp/idp-metadata.xml.vm
 COPY jetty/idp-metadata.xml ${JETTY_BASE}/identity/conf/shibboleth3/idp/idp-metadata.xml
 COPY conf/oxTrustLogRotationConfiguration.xml /etc/gluu/conf/
-COPY conf/ox-ldap.properties.tmpl /opt/templates/
+COPY conf/gluu-ldap.properties.tmpl /opt/templates/
 COPY conf/salt.tmpl /opt/templates/
 COPY scripts /opt/scripts
 RUN chmod +x /opt/scripts/entrypoint.sh
