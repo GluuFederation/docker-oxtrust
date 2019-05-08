@@ -2,6 +2,12 @@
 
 Here you can see an overview of changes between each release.
 
+## Version 3.1.5_03
+
+Released on May 8th, 2019.
+
+* Added security patch for oxTrust. Reference: https://github.com/GluuFederation/docker-oxtrust/issues/13.
+
 ## Version 3.1.5_02
 
 Released on April 9th, 2019.
