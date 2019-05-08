@@ -29,7 +29,6 @@ def render_ldap_properties():
             rendered_txt = txt % {
                 "ldap_binddn": manager.config.get("ldap_binddn"),
                 "encoded_ox_ldap_pw": manager.secret.get("encoded_ox_ldap_pw"),
-                # "inumAppliance": manager.config.get("inumAppliance"),
                 "ldap_url": GLUU_LDAP_URL,
                 "ldapTrustStoreFn": manager.config.get("ldapTrustStoreFn"),
                 "encoded_ldapTrustStorePass": manager.secret.get("encoded_ldapTrustStorePass"),
