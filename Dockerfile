@@ -53,7 +53,7 @@ RUN wget -q ${JYTHON_DOWNLOAD_URL} -O /tmp/jython-installer.jar \
 # =======
 
 ENV OX_VERSION 4.0.0-SNAPSHOT
-ENV OX_BUILD_DATE 2019-05-07
+ENV OX_BUILD_DATE 2019-05-23
 ENV OXTRUST_DOWNLOAD_URL https://ox.gluu.org/maven/org/gluu/oxtrust-server/${OX_VERSION}/oxtrust-server-${OX_VERSION}.war
 
 # the LABEL defined before downloading ox war/jar files to make sure
@@ -140,7 +140,9 @@ ENV GLUU_SECRET_KUBERNETES_USE_KUBE_CONFIG false
 # Generic ENV
 # ===========
 
+ENV GLUU_PERSISTENCE_TYPE ldap
 ENV GLUU_LDAP_URL localhost:1636
+ENV GLUU_COUCHBASE_URL localhost
 ENV GLUU_SHIB_SOURCE_DIR /opt/shibboleth-idp
 ENV GLUU_SHIB_TARGET_DIR /opt/shared-shibboleth-idp
 ENV GLUU_MAX_RAM_FRACTION 1
@@ -158,19 +160,16 @@ RUN mkdir -p /etc/certs /deploy /opt/shibboleth-idp \
     && mkdir -p /var/ox/photos /var/ox/identity/removed /var/ox/identity/cr-snapshots \
     && mkdir -p ${JETTY_BASE}/identity/custom/pages ${JETTY_BASE}/identity/custom/static \
     && mkdir -p ${JETTY_BASE}/identity/custom/i18n ${JETTY_BASE}/identity/custom/libs \
-    && mkdir -p /opt/scripts \
-    && mkdir -p /opt/templates \
+    && mkdir -p /app/scripts \
+    && mkdir -p /app/templates \
     && mkdir -p /opt/shared-shibboleth-idp
 
 # Copy templates
 COPY jetty/identity_web_resources.xml ${JETTY_BASE}/identity/webapps/
-# COPY jetty/idp-metadata.xml.vm ${JETTY_BASE}/identity/conf/shibboleth3/idp/idp-metadata.xml.vm
 COPY jetty/idp-metadata.xml ${JETTY_BASE}/identity/conf/shibboleth3/idp/idp-metadata.xml
 COPY conf/oxTrustLogRotationConfiguration.xml /etc/gluu/conf/
-COPY conf/gluu-ldap.properties.tmpl /opt/templates/
-COPY conf/salt.tmpl /opt/templates/
-COPY scripts /opt/scripts
-RUN chmod +x /opt/scripts/entrypoint.sh
+COPY conf/*.tmpl /app/templates/
+COPY scripts /app/scripts
 
 # # create jetty user
 # RUN useradd -ms /bin/sh --uid 1000 jetty \
@@ -195,4 +194,4 @@ RUN chmod +x /opt/scripts/entrypoint.sh
 # USER 1000
 
 ENTRYPOINT ["tini", "-g", "--"]
-CMD ["/opt/scripts/entrypoint.sh"]
+CMD ["sh", "/app/scripts/entrypoint.sh"]

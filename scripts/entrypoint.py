@@ -7,6 +7,8 @@ import pyDes
 from gluulib import get_manager
 
 GLUU_LDAP_URL = os.environ.get("GLUU_LDAP_URL", "localhost:1636")
+GLUU_COUCHBASE_URL = os.environ.get("GLUU_COUCHBASE_URL", "localhost")
+GLUU_PERSISTENCE_TYPE = os.environ.get("GLUU_PERSISTENCE_TYPE", "ldap")
 
 manager = get_manager()
 
@@ -14,27 +16,10 @@ manager = get_manager()
 def render_salt():
     encode_salt = manager.secret.get("encoded_salt")
 
-    with open("/opt/templates/salt.tmpl") as fr:
+    with open("/app/templates/salt.tmpl") as fr:
         txt = fr.read()
         with open("/etc/gluu/conf/salt", "w") as fw:
             rendered_txt = txt % {"encode_salt": encode_salt}
-            fw.write(rendered_txt)
-
-
-def render_ldap_properties():
-    with open("/opt/templates/gluu-ldap.properties.tmpl") as fr:
-        txt = fr.read()
-
-        with open("/etc/gluu/conf/gluu-ldap.properties", "w") as fw:
-            rendered_txt = txt % {
-                "ldap_binddn": manager.config.get("ldap_binddn"),
-                "encoded_ox_ldap_pw": manager.secret.get("encoded_ox_ldap_pw"),
-                "ldap_url": GLUU_LDAP_URL,
-                "ldapTrustStoreFn": manager.config.get("ldapTrustStoreFn"),
-                "encoded_ldapTrustStorePass": manager.secret.get("encoded_ldapTrustStorePass"),
-                "gluuOptPythonFolder": "/opt/gluu/python",
-                "certFolder": "/etc/certs",
-            }
             fw.write(rendered_txt)
 
 
@@ -176,9 +161,95 @@ def patch_finishlogin_xhtml():
         f.write(patch)
 
 
+def sync_couchbase_pkcs12():
+    with open(manager.config.get("couchbaseTrustStoreFn"), "wb") as fw:
+        pkcs = decrypt_text(
+            manager.secret.get("couchbase_pkcs12_base64"),
+            manager.secret.get("encoded_salt"),
+        )
+        fw.write(pkcs)
+
+
+def render_gluu_properties():
+    with open("/app/templates/gluu.properties.tmpl") as fr:
+        txt = fr.read()
+
+        ldap_hostname, ldaps_port = GLUU_LDAP_URL.split(":")
+
+        with open("/etc/gluu/conf/gluu.properties", "w") as fw:
+            rendered_txt = txt % {
+                "gluuOptPythonFolder": "/opt/gluu/python",
+                "certFolder": "/etc/certs",
+                "persistence_type": GLUU_PERSISTENCE_TYPE,
+            }
+            fw.write(rendered_txt)
+
+
+def render_ldap_properties():
+    with open("/app/templates/gluu-ldap.properties.tmpl") as fr:
+        txt = fr.read()
+
+        ldap_hostname, ldaps_port = GLUU_LDAP_URL.split(":")
+
+        with open("/etc/gluu/conf/gluu-ldap.properties", "w") as fw:
+            rendered_txt = txt % {
+                "ldap_binddn": manager.config.get("ldap_binddn"),
+                "encoded_ox_ldap_pw": manager.secret.get("encoded_ox_ldap_pw"),
+                "ldap_hostname": ldap_hostname,
+                "ldaps_port": ldaps_port,
+                "ldapTrustStoreFn": manager.config.get("ldapTrustStoreFn"),
+                "encoded_ldapTrustStorePass": manager.secret.get("encoded_ldapTrustStorePass"),
+            }
+            fw.write(rendered_txt)
+
+
+def render_couchbase_properties():
+    # buckets: gluu_cache, gluu_site
+    couchbase_buckets = [
+        "gluu",
+        "gluu_user",
+        "gluu_statistic",
+        "gluu_cache",
+        "gluu_site",
+    ]
+
+    # bucket.default: gluu
+    # bucket.gluu_cache.mapping: cache
+    # bucket.gluu_statistic.mapping: statistic
+    # bucket.gluu_site.mapping: site
+    couchbase_mappings = [
+        "bucket.gluu_user.mapping: people, groups",
+        "bucket.gluu_cache.mapping: cache",
+        "bucket.gluu_statistic.mapping: statistic",
+        "bucket.gluu_site.mapping: site",
+    ]
+
+    with open("/app/templates/gluu-couchbase.properties.tmpl") as fr:
+        txt = fr.read()
+
+        ldap_hostname, ldaps_port = GLUU_LDAP_URL.split(":")
+
+        with open("/etc/gluu/conf/gluu-couchbase.properties", "w") as fw:
+            rendered_txt = txt % {
+                "hostname": GLUU_COUCHBASE_URL,
+                "couchbase_server_user": manager.config.get("couchbase_server_user"),
+                "encoded_couchbase_server_pw": manager.secret.get("encoded_couchbase_server_pw"),
+                "couchbase_buckets": ", ".join(couchbase_buckets),
+                "default_bucket": "gluu",
+                "couchbase_mappings": "\n".join(couchbase_mappings),
+                "encryption_method": "SSHA-256",
+                "ssl_enabled": "true",
+                "couchbaseTrustStoreFn": manager.config.get("couchbaseTrustStoreFn"),
+                "encoded_couchbaseTrustStorePass": manager.secret.get("encoded_couchbaseTrustStorePass"),
+            }
+            fw.write(rendered_txt)
+
+
 if __name__ == "__main__":
     render_salt()
+    render_gluu_properties()
     render_ldap_properties()
+    render_couchbase_properties()
     render_ssl_cert()
     render_ssl_key()
     render_idp_cert()
@@ -188,7 +259,7 @@ if __name__ == "__main__":
     render_scim_rs_jks()
     render_passport_rs_jks()
     sync_ldap_pkcs12()
-    # sync_ldap_cert()
+    sync_couchbase_pkcs12()
     modify_jetty_xml()
     modify_webdefault_xml()
     patch_finishlogin_xhtml()

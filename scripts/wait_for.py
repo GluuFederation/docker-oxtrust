@@ -10,6 +10,7 @@ import time
 import ldap3
 import pyDes
 
+from cbm import CBM
 from gluulib import get_manager
 
 logger = logging.getLogger("wait_for")
@@ -168,6 +169,46 @@ def wait_for_oxauth(manager, max_wait_time, sleep_duration):
     sys.exit(1)
 
 
+def wait_for_couchbase(manager, max_wait_time, sleep_duration):
+    def cb_password(encoded_password, encoded_salt):
+        cipher = pyDes.triple_des(
+            b"{}".format(encoded_salt),
+            pyDes.ECB,
+            padmode=pyDes.PAD_PKCS5
+        )
+        encrypted_text = b"{}".format(base64.b64decode(encoded_password))
+        return cipher.decrypt(encrypted_text)
+
+    hostname = os.environ.get("GLUU_COUCHBASE_URL", "localhost")
+    user = manager.config.get("couchbase_server_user")
+    salt = manager.secret.get("encoded_salt")
+    password = manager.secret.get("encoded_couchbase_server_pw")
+    cbm = CBM(hostname, user, cb_password(password, salt))
+
+    for i in range(0, max_wait_time, sleep_duration):
+        try:
+            if cbm.test_connection():
+                req = cbm.exec_query(
+                    "SELECT * FROM `gluu` USE KEYS 'configuration_oxtrust'"
+                )
+                if req.ok:
+                    logger.info("Couchbase backend is ready.")
+                    return
+                else:
+                    reason = req.text
+            else:
+                reason = "Connection is not ready"
+        except Exception as exc:
+            reason = exc
+
+        logger.warn("Couchbase backend is not ready; reason={}; "
+                    "retrying in {} seconds.".format(reason, sleep_duration))
+        time.sleep(sleep_duration)
+
+    logger.error("Couchbase backend is not ready after {} seconds.".format(max_wait_time))
+    sys.exit(1)
+
+
 def wait_for(manager, deps=None):
     deps = deps or []
 
@@ -192,6 +233,9 @@ def wait_for(manager, deps=None):
 
     if "oxauth" in deps:
         wait_for_oxauth(manager, max_wait_time, sleep_duration)
+
+    if "couchbase" in deps:
+        wait_for_couchbase(manager, max_wait_time, sleep_duration)
 
 
 if __name__ == "__main__":
