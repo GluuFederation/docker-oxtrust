@@ -1,5 +1,6 @@
 import argparse
 import base64
+import json
 import logging
 import os
 import re
@@ -195,7 +196,7 @@ def wait_for_couchbase(manager, max_wait_time, sleep_duration):
                     logger.info("Couchbase backend is ready.")
                     return
                 else:
-                    reason = req.text
+                    reason = json.loads(req.text)["errors"][0]["msg"]
             else:
                 reason = "Connection is not ready"
         except Exception as exc:
