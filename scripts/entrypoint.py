@@ -9,6 +9,7 @@ from gluulib import get_manager
 GLUU_LDAP_URL = os.environ.get("GLUU_LDAP_URL", "localhost:1636")
 GLUU_COUCHBASE_URL = os.environ.get("GLUU_COUCHBASE_URL", "localhost")
 GLUU_PERSISTENCE_TYPE = os.environ.get("GLUU_PERSISTENCE_TYPE", "ldap")
+GLUU_PERSISTENCE_LDAP_MAPPING = os.environ.get("GLUU_PERSISTENCE_LDAP_MAPPING", "default")
 
 manager = get_manager()
 
@@ -203,26 +204,57 @@ def render_ldap_properties():
             fw.write(rendered_txt)
 
 
-def render_couchbase_properties():
-    # buckets: gluu_cache, gluu_site
-    couchbase_buckets = [
-        "gluu",
-        "gluu_user",
-        "gluu_statistic",
-        "gluu_cache",
-        "gluu_site",
-    ]
+def get_couchbase_mappings():
+    mappings = {
+        "default": {
+            "bucket": "gluu",
+            "alias": "",
+        },
+        "user": {
+            "bucket": "gluu_user",
+            "alias": "people, groups"
+        },
+        "cache": {
+            "bucket": "gluu_cache",
+            "alias": "cache",
+        },
+        "statistic": {
+            "bucket": "gluu_statistic",
+            "alias": "statistic",
+        },
+        "site": {
+            "bucket": "gluu_site",
+            "alias": "site",
+        }
+    }
 
-    # bucket.default: gluu
-    # bucket.gluu_cache.mapping: cache
-    # bucket.gluu_statistic.mapping: statistic
-    # bucket.gluu_site.mapping: site
-    couchbase_mappings = [
-        "bucket.gluu_user.mapping: people, groups",
-        "bucket.gluu_cache.mapping: cache",
-        "bucket.gluu_statistic.mapping: statistic",
-        "bucket.gluu_site.mapping: site",
-    ]
+    if GLUU_PERSISTENCE_TYPE == "hybrid":
+        mappings = {
+            name: mapping for name, mapping in mappings.iteritems()
+            if name != GLUU_PERSISTENCE_LDAP_MAPPING
+        }
+
+    return mappings
+
+
+def render_couchbase_properties():
+    _couchbase_mappings = get_couchbase_mappings()
+    couchbase_buckets = []
+    couchbase_mappings = []
+
+    for _, mapping in _couchbase_mappings.iteritems():
+        couchbase_buckets.append(mapping["bucket"])
+
+        if not mapping["alias"]:
+            continue
+
+        couchbase_mappings.append("bucket.{0}.mapping: {1}".format(
+            mapping["bucket"], mapping["alias"],
+        ))
+
+    # always have `gluu` as default bucket
+    if "gluu" not in couchbase_buckets:
+        couchbase_buckets.insert(0, "gluu")
 
     with open("/app/templates/gluu-couchbase.properties.tmpl") as fr:
         txt = fr.read()
@@ -246,40 +278,31 @@ def render_couchbase_properties():
 
 
 def render_hybrid_properties():
-    # storages: couchbase, ldap
-    # storage.default: ldap
-    # storage.ldap.mapping: user
-    # storage.couchbase.mapping: cache, people, groups, site, statistic
-    mappings = ("default", "user", "cache", "site", "statistic")
-    ldap_mapping = os.environ.get("GLUU_PERSISTENCE_LDAP_MAPPING", "default")
-    default_storage = "ldap" if ldap_mapping == "default" else "couchbase"
+    _couchbase_mappings = get_couchbase_mappings()
+
+    ldap_mapping = GLUU_PERSISTENCE_LDAP_MAPPING
+
+    if GLUU_PERSISTENCE_LDAP_MAPPING == "default":
+        default_storage = "ldap"
+    else:
+        default_storage = "couchbase"
+
+    couchbase_mappings = [
+        mapping["alias"] for name, mapping in _couchbase_mappings.iteritems()
+        if name != ldap_mapping
+    ]
 
     out = [
         "storages: ldap, couchbase",
         "storage.default: {}".format(default_storage),
+        "storage.ldap.mapping: {}".format(ldap_mapping),
+        "storage.couchbase.mapping: {}".format(
+            ", ".join(filter(None, couchbase_mappings))
+        ),
     ]
-
-    # add ldap mappings (if any)
-    ldap_mappings = [ldap_mapping]
-    if ldap_mappings:
-        out.append("storage.ldap.mapping: {}".format(
-            ", ".join(ldap_mappings)
-        ))
-
-    # add couchbase mappings (if any)
-    couchbase_mappings = [
-        mapping for mapping in mappings if mapping != ldap_mapping
-    ]
-    if couchbase_mappings:
-        out.append("storage.couchbase.mapping: {}".format(
-            ", ".join(couchbase_mappings)
-        ))
-
-    # replace `user` mapping
-    txt = "\n".join(out).replace("user", "people, groups")
 
     with open("/etc/gluu/conf/gluu-hybrid.properties", "w") as fw:
-        fw.write(txt)
+        fw.write("\n".join(out))
 
 
 if __name__ == "__main__":
