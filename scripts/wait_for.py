@@ -3,7 +3,7 @@ import base64
 import json
 import logging
 import os
-import re
+import random
 import requests
 import sys
 import time
@@ -17,9 +17,22 @@ from gluulib import get_manager
 logger = logging.getLogger("wait_for")
 logger.setLevel(logging.INFO)
 ch = logging.StreamHandler()
-fmt = logging.Formatter('%(levelname)s - %(asctime)s - %(message)s')
+fmt = logging.Formatter('%(levelname)s - %(name)s - %(asctime)s - %(message)s')
 ch.setFormatter(fmt)
 logger.addHandler(ch)
+
+
+def decode_password(manager, password_key, salt_key):
+    encoded_password = manager.secret.get(password_key)
+    encoded_salt = manager.secret.get(salt_key)
+
+    cipher = pyDes.triple_des(
+        b"{}".format(encoded_salt),
+        pyDes.ECB,
+        padmode=pyDes.PAD_PKCS5
+    )
+    encrypted_text = b"{}".format(base64.b64decode(encoded_password))
+    return cipher.decrypt(encrypted_text)
 
 
 def wait_for_config(manager, max_wait_time, sleep_duration):
@@ -58,40 +71,11 @@ def wait_for_secret(manager, max_wait_time, sleep_duration):
     sys.exit(1)
 
 
-def get_ldap_password(manager):
-    encoded_password = ""
-    encoded_salt = ""
-
-    try:
-        with open("/etc/gluu/conf/ox-ldap.properties") as f:
-            txt = f.read()
-            result = re.findall("bindPassword: (.+)", txt)
-            if result:
-                encoded_password = result[0]
-    except IOError:
-        encoded_password = manager.secret.get("encoded_ox_ldap_pw")
-
-    try:
-        with open("/etc/gluu/conf/salt") as f:
-            txt = f.read()
-            encoded_salt = txt.split("=")[-1].strip()
-    except IOError:
-        encoded_salt = manager.secret.get("encoded_salt")
-
-    cipher = pyDes.triple_des(
-        b"{}".format(encoded_salt),
-        pyDes.ECB,
-        padmode=pyDes.PAD_PKCS5
-    )
-    encrypted_text = b"{}".format(base64.b64decode(encoded_password))
-    return cipher.decrypt(encrypted_text)
-
-
 def wait_for_ldap(manager, max_wait_time, sleep_duration):
     GLUU_LDAP_URL = os.environ.get("GLUU_LDAP_URL", "localhost:1636")
 
     ldap_bind_dn = manager.config.get("ldap_binddn")
-    ldap_password = get_ldap_password(manager)
+    ldap_password = decode_password(manager, "encoded_ox_ldap_pw", "encoded_salt")
 
     ldap_host = GLUU_LDAP_URL.split(":")[0]
     ldap_port = int(GLUU_LDAP_URL.split(":")[1])
@@ -100,10 +84,6 @@ def wait_for_ldap(manager, max_wait_time, sleep_duration):
         ldap_host,
         ldap_port,
         use_ssl=True
-    )
-    logger.info(
-        "LDAP trying ldaps://" + str(GLUU_LDAP_URL) +
-        " ldap_bind_dn=" + ldap_bind_dn
     )
 
     # check the entries few times, to ensure OpenDJ is running after importing
@@ -125,8 +105,8 @@ def wait_for_ldap(manager, max_wait_time, sleep_duration):
                 )
 
                 if successive_entries_check >= 3:
-                    logger.info("LDAP is up and populated :-)")
-                    return 0
+                    logger.info("LDAP is ready")
+                    return
 
                 if ldap_connection.entries:
                     successive_entries_check += 1
@@ -170,35 +150,47 @@ def wait_for_oxauth(manager, max_wait_time, sleep_duration):
     sys.exit(1)
 
 
-def wait_for_couchbase(manager, max_wait_time, sleep_duration):
-    def cb_password(encoded_password, encoded_salt):
-        cipher = pyDes.triple_des(
-            b"{}".format(encoded_salt),
-            pyDes.ECB,
-            padmode=pyDes.PAD_PKCS5
-        )
-        encrypted_text = b"{}".format(base64.b64decode(encoded_password))
-        return cipher.decrypt(encrypted_text)
+def check_couchbase_document(cbm):
+    persistence_type = os.environ.get("GLUU_PERSISTENCE_TYPE", "ldap")
+    ldap_mapping = os.environ.get("GLUU_PERSISTENCE_LDAP_MAPPING", "default")
+    checked = True
+    error = ""
+    bucket = "gluu"
 
+    if persistence_type == "hybrid":
+        req = cbm.get_buckets()
+        if not req.ok:
+            checked = False
+            error = json.loads(req.text)["errors"][0]["msg"]
+            return checked, error
+
+        bucket = random.choice([
+            _bucket["name"] for _bucket in req.json()
+            if _bucket["name"] != ldap_mapping
+        ])
+
+    query = "SELECT COUNT(*) FROM `{}`".format(bucket)
+    req = cbm.exec_query(query)
+    if not req.ok:
+        checked = False
+        error = json.loads(req.text)["errors"][0]["msg"]
+    return checked, error
+
+
+def wait_for_couchbase(manager, max_wait_time, sleep_duration):
     hostname = os.environ.get("GLUU_COUCHBASE_URL", "localhost")
     user = manager.config.get("couchbase_server_user")
-    salt = manager.secret.get("encoded_salt")
-    password = manager.secret.get("encoded_couchbase_server_pw")
-    cbm = CBM(hostname, user, cb_password(password, salt))
+    cbm = CBM(hostname, user, decode_password(
+        manager, "encoded_couchbase_server_pw", "encoded_salt",
+    ))
 
     for i in range(0, max_wait_time, sleep_duration):
         try:
-            if cbm.test_connection():
-                req = cbm.exec_query(
-                    "SELECT * FROM `gluu` USE KEYS 'configuration_oxtrust'"
-                )
-                if req.ok:
-                    logger.info("Couchbase backend is ready.")
-                    return
-                else:
-                    reason = json.loads(req.text)["errors"][0]["msg"]
-            else:
-                reason = "Connection is not ready"
+            checked, error = check_couchbase_document(cbm)
+            if checked:
+                logger.info("Couchbase is ready")
+                return
+            reason = error
         except Exception as exc:
             reason = exc
 
