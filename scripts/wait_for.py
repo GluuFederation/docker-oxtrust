@@ -127,14 +127,12 @@ def wait_for_oxauth(manager, max_wait_time, sleep_duration):
     GLUU_OXAUTH_BACKEND = os.environ.get("GLUU_OXAUTH_BACKEND", "localhost:8081")
     url = "http://" + GLUU_OXAUTH_BACKEND + "/oxauth/.well-known/openid-configuration"
 
-    logger.info("Waiting for oxAuth to be up URL= " + url)
-
     for i in range(0, max_wait_time, sleep_duration):
         try:
             r = requests.get(url)
             if r.status_code == 200:
-                logger.info("oxAuth is up :-)")
-                return 0
+                logger.info("oxAuth is ready")
+                return
             else:
                 logger.warn(
                     "oxAuth {} is not ready; retrying in {} seconds".format(url, sleep_duration)
@@ -142,11 +140,11 @@ def wait_for_oxauth(manager, max_wait_time, sleep_duration):
         except Exception as exc:
             logger.warn(
                 "oxAuth {} is not ready; error={}; "
-                "retrying in {} seconds".format(url, exc, max_wait_time)
+                "retrying in {} seconds".format(url, exc, sleep_duration)
             )
         time.sleep(sleep_duration)
 
-    logger.error("oxAuth not ready, after {} seconds.".format(max_wait_time))
+    logger.error("oxAuth is not ready, after {} seconds.".format(max_wait_time))
     sys.exit(1)
 
 
