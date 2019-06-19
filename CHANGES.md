@@ -2,6 +2,12 @@
 
 Here you can see an overview of changes between each release.
 
+## Version 3.1.6_04
+
+Released on June 19th, 2019.
+
+* Upgraded `oxtrust-server.war` to 3.1.6.sp1.
+
 ## Version 3.1.6_03
 
 Released on May 10th, 2019.
