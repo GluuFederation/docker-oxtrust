@@ -80,7 +80,14 @@ get_java_opts() {
     echo "${java_opts}"
 }
 
-deps="config,secret,${GLUU_PERSISTENCE_TYPE},oxauth"
+# run wait_for functions
+deps="config,secret"
+
+if [ "${GLUU_PERSISTENCE_TYPE}" = "hybrid" ]; then
+    deps="${deps},ldap,couchbase"
+else
+    deps="${deps},${GLUU_PERSISTENCE_TYPE}"
+fi
 
 if [ -f /etc/redhat-release ]; then
     source scl_source enable python27 && python /app/scripts/wait_for.py --deps="${deps}"

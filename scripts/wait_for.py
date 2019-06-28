@@ -73,6 +73,7 @@ def wait_for_secret(manager, max_wait_time, sleep_duration):
 
 def wait_for_ldap(manager, max_wait_time, sleep_duration):
     GLUU_LDAP_URL = os.environ.get("GLUU_LDAP_URL", "localhost:1636")
+    GLUU_PERSISTENCE_LDAP_MAPPING = os.environ.get("GLUU_PERSISTENCE_LDAP_MAPPING", "default")
 
     ldap_bind_dn = manager.config.get("ldap_binddn")
     ldap_password = decode_password(manager, "encoded_ox_ldap_pw", "encoded_salt")
@@ -90,6 +91,15 @@ def wait_for_ldap(manager, max_wait_time, sleep_duration):
     # initial data; this may not required for OpenLDAP
     successive_entries_check = 0
 
+    search_base_mapping = {
+        "default": "o=gluu",
+        "user": "o=gluu",
+        "site": "o=site",
+        "cache": "o=gluu",
+        "statistic": "o=metric",
+    }
+    search_base = search_base_mapping[GLUU_PERSISTENCE_LDAP_MAPPING]
+
     for i in range(0, max_wait_time, sleep_duration):
         try:
             with ldap3.Connection(
@@ -98,25 +108,25 @@ def wait_for_ldap(manager, max_wait_time, sleep_duration):
                     ldap_password) as ldap_connection:
 
                 ldap_connection.search(
-                    search_base="o=gluu",
-                    search_filter="(oxScopeType=openid)",
+                    search_base=search_base,
+                    search_filter="(objectClass=*)",
                     search_scope=ldap3.SUBTREE,
-                    attributes=['*']
+                    attributes=['objectClass'],
+                    size_limit=1,
                 )
-
-                if successive_entries_check >= 3:
-                    logger.info("LDAP is ready")
-                    return
 
                 if ldap_connection.entries:
                     successive_entries_check += 1
 
+                if successive_entries_check >= 3:
+                    logger.info("LDAP is ready")
+                    return
+                reason = "LDAP is not initialized yet"
         except Exception as exc:
-            logger.warn(
-                "LDAP not yet initialised: {}; retrying in {} seconds".format(
-                    exc, sleep_duration,
-                )
-            )
+            reason = exc
+
+        logger.warn("LDAP backend is not ready; reason={}; "
+                    "retrying in {} seconds.".format(reason, sleep_duration))
         time.sleep(sleep_duration)
 
     logger.error("LDAP not ready, after {} seconds.".format(max_wait_time))
