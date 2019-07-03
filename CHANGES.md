@@ -2,6 +2,12 @@
 
 Here you can see an overview of changes between each release.
 
+## Version 3.1.6_05
+
+Released on July 4th, 2019.
+
+* Upgraded `oxtrust-server` to the latest 3.1.6.sp1 build. Ref: https://github.com/GluuFederation/gluu-docker/issues/78.
+
 ## Version 3.1.6_04
 
 Released on June 19th, 2019.
