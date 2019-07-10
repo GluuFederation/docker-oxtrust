@@ -53,7 +53,7 @@ RUN wget -q ${JYTHON_DOWNLOAD_URL} -O /tmp/jython-installer.jar \
 # =======
 
 ENV OX_VERSION 4.0.0-SNAPSHOT
-ENV OX_BUILD_DATE 2019-06-26
+ENV OX_BUILD_DATE 2019-07-09
 ENV OXTRUST_DOWNLOAD_URL https://ox.gluu.org/maven/org/gluu/oxtrust-server/${OX_VERSION}/oxtrust-server-${OX_VERSION}.war
 
 # the LABEL defined before downloading ox war/jar files to make sure
@@ -136,21 +136,28 @@ ENV GLUU_SECRET_KUBERNETES_NAMESPACE default
 ENV GLUU_SECRET_KUBERNETES_SECRET gluu
 ENV GLUU_SECRET_KUBERNETES_USE_KUBE_CONFIG false
 
+# ===============
+# Persistence ENV
+# ===============
+
+# available options: couchbase, ldap, hybrid
+ENV GLUU_PERSISTENCE_TYPE ldap
+# only takes affect when GLUU_PERSISTENCE_TYPE is hybrid
+# available options: default, user, cache, site, statistic
+ENV GLUU_PERSISTENCE_LDAP_MAPPING default
+ENV GLUU_COUCHBASE_URL localhost
+ENV GLUU_LDAP_URL localhost:1636
+
 # ===========
 # Generic ENV
 # ===========
 
-ENV GLUU_PERSISTENCE_TYPE ldap
-ENV GLUU_LDAP_URL localhost:1636
-ENV GLUU_COUCHBASE_URL localhost
 ENV GLUU_SHIB_SOURCE_DIR /opt/shibboleth-idp
 ENV GLUU_SHIB_TARGET_DIR /opt/shared-shibboleth-idp
 ENV GLUU_MAX_RAM_FRACTION 1
 ENV GLUU_OXAUTH_BACKEND localhost:8081
 ENV GLUU_WAIT_MAX_TIME 300
 ENV GLUU_WAIT_SLEEP_DURATION 5
-ENV GLUU_PERSISTENCE_TYPE ldap
-ENV GLUU_PERSISTENCE_LDAP_MAPPING default
 ENV PYTHON_HOME=/opt/jython
 
 # ==========
