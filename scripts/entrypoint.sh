@@ -115,6 +115,9 @@ fi
 # monitor filesystem changes on Shibboleth-related files
 sh /app/scripts/shibwatcher.sh &
 
+# enable passport menu (a workaround)
+mkdir -p /opt/gluu/node/passport/server
+
 cd /opt/gluu/jetty/identity
 exec java \
      $(get_java_opts) \
