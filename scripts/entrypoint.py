@@ -1,10 +1,8 @@
-import base64
 import os
 import re
 
-import pyDes
-
-from gluulib import get_manager
+from pygluu.containerlib import get_manager
+from pygluu.containerlib.utils import decode_text
 
 GLUU_LDAP_URL = os.environ.get("GLUU_LDAP_URL", "localhost:1636")
 GLUU_COUCHBASE_URL = os.environ.get("GLUU_COUCHBASE_URL", "localhost")
@@ -38,43 +36,22 @@ def render_ssl_key():
             fd.write(ssl_key)
 
 
-def decrypt_text(encrypted_text, key):
-    cipher = pyDes.triple_des(b"{}".format(key), pyDes.ECB,
-                              padmode=pyDes.PAD_PKCS5)
-    encrypted_text = b"{}".format(base64.b64decode(encrypted_text))
-    return cipher.decrypt(encrypted_text)
-
-
 def sync_ldap_pkcs12():
-    pkcs = decrypt_text(manager.secret.get("ldap_pkcs12_base64"),
-                        manager.secret.get("encoded_salt"))
+    pkcs = decode_text(manager.secret.get("ldap_pkcs12_base64"),
+                       manager.secret.get("encoded_salt"))
 
     with open(manager.config.get("ldapTrustStoreFn"), "wb") as fw:
         fw.write(pkcs)
 
 
-# def sync_ldap_cert():
-#     cert = decrypt_text(manager.secret.get("ldap_ssl_cert"),
-#                         manager.secret.get("encoded_salt"))
-
-#     ldap_type = manager.config.get("ldap_type")
-#     if ldap_type == "opendj":
-#         cert_fn = "/etc/certs/opendj.crt"
-#     else:
-#         cert_fn = "/etc/certs/openldap.crt"
-
-#     with open(cert_fn, "wb") as fw:
-#         fw.write(cert)
-
-
 def render_idp_cert():
-    cert = decrypt_text(manager.secret.get("shibIDP_cert"), manager.secret.get("encoded_salt"))
+    cert = decode_text(manager.secret.get("shibIDP_cert"), manager.secret.get("encoded_salt"))
     with open("/etc/certs/shibIDP.crt", "w") as fd:
         fd.write(cert)
 
 
 def render_idp_key():
-    cert = decrypt_text(manager.secret.get("shibIDP_key"), manager.secret.get("encoded_salt"))
+    cert = decode_text(manager.secret.get("shibIDP_key"), manager.secret.get("encoded_salt"))
     with open("/etc/certs/shibIDP.key", "w") as fd:
         fd.write(cert)
 
@@ -92,15 +69,15 @@ def render_idp_encryption_cert():
 
 
 def render_scim_rs_jks():
-    jks = decrypt_text(manager.secret.get("scim_rs_jks_base64"),
-                       manager.secret.get("encoded_salt"))
+    jks = decode_text(manager.secret.get("scim_rs_jks_base64"),
+                      manager.secret.get("encoded_salt"))
     with open(manager.config.get("scim_rs_client_jks_fn"), "w") as f:
         f.write(jks)
 
 
 def render_passport_rs_jks():
-    jks = decrypt_text(manager.secret.get("passport_rs_jks_base64"),
-                       manager.secret.get("encoded_salt"))
+    jks = decode_text(manager.secret.get("passport_rs_jks_base64"),
+                      manager.secret.get("encoded_salt"))
     with open(manager.config.get("passport_rs_client_jks_fn"), "w") as f:
         f.write(jks)
 
@@ -164,7 +141,7 @@ def patch_finishlogin_xhtml():
 
 def sync_couchbase_pkcs12():
     with open(manager.config.get("couchbaseTrustStoreFn"), "wb") as fw:
-        pkcs = decrypt_text(
+        pkcs = decode_text(
             manager.secret.get("couchbase_pkcs12_base64"),
             manager.secret.get("encoded_salt"),
         )

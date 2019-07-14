@@ -13,7 +13,8 @@ RUN apk update && apk add --no-cache \
     py-pip \
     ruby \
     shadow \
-    wget
+    wget \
+    git
 
 # =====
 # Jetty
