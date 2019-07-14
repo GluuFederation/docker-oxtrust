@@ -2,7 +2,6 @@ import os
 import re
 
 from pygluu.containerlib import get_manager
-from pygluu.containerlib.utils import decode_text
 
 GLUU_LDAP_URL = os.environ.get("GLUU_LDAP_URL", "localhost:1636")
 GLUU_COUCHBASE_URL = os.environ.get("GLUU_COUCHBASE_URL", "localhost")
@@ -23,63 +22,42 @@ def render_salt():
 
 
 def render_ssl_cert():
-    ssl_cert = manager.secret.get("ssl_cert")
-    if ssl_cert:
-        with open("/etc/certs/gluu_https.crt", "w") as fd:
-            fd.write(ssl_cert)
+    manager.secret.to_file("ssl_cert", "/etc/certs/gluu_https.crt")
 
 
 def render_ssl_key():
-    ssl_key = manager.secret.get("ssl_key")
-    if ssl_key:
-        with open("/etc/certs/gluu_https.key", "w") as fd:
-            fd.write(ssl_key)
+    manager.secret.to_file("ssl_key", "/etc/certs/gluu_https.key")
 
 
 def sync_ldap_pkcs12():
-    pkcs = decode_text(manager.secret.get("ldap_pkcs12_base64"),
-                       manager.secret.get("encoded_salt"))
-
-    with open(manager.config.get("ldapTrustStoreFn"), "wb") as fw:
-        fw.write(pkcs)
+    dest = manager.config.get("ldapTrustStoreFn")
+    manager.secret.to_file("ldap_pkcs12_base64", dest, decode=True, binary_mode=True)
 
 
 def render_idp_cert():
-    cert = decode_text(manager.secret.get("shibIDP_cert"), manager.secret.get("encoded_salt"))
-    with open("/etc/certs/shibIDP.crt", "w") as fd:
-        fd.write(cert)
+    manager.secret.to_file("shibIDP_cert", "/etc/certs/shibIDP.crt", decode=True)
 
 
 def render_idp_key():
-    cert = decode_text(manager.secret.get("shibIDP_key"), manager.secret.get("encoded_salt"))
-    with open("/etc/certs/shibIDP.key", "w") as fd:
-        fd.write(cert)
+    manager.secret.to_file("shibIDP_key", "/etc/certs/shibIDP.key", decode=True)
 
 
 def render_idp_signing_cert():
-    cert = manager.secret.get("idp3SigningCertificateText")
-    with open("/etc/certs/idp-signing.crt", "w") as fd:
-        fd.write(cert)
+    manager.secret.to_file("idp3SigningCertificateText", "/etc/certs/idp-signing.crt")
 
 
 def render_idp_encryption_cert():
-    cert = manager.secret.get("idp3EncryptionCertificateText")
-    with open("/etc/certs/idp-encryption.crt", "w") as fd:
-        fd.write(cert)
+    manager.secret.to_file("idp3EncryptionCertificateText", "/etc/certs/idp-encryption.crt")
 
 
 def render_scim_rs_jks():
-    jks = decode_text(manager.secret.get("scim_rs_jks_base64"),
-                      manager.secret.get("encoded_salt"))
-    with open(manager.config.get("scim_rs_client_jks_fn"), "w") as f:
-        f.write(jks)
+    dest = manager.config.get("scim_rs_client_jks_fn")
+    manager.secret.to_file("scim_rs_jks_base64", dest, decode=True, binary_mode=True)
 
 
 def render_passport_rs_jks():
-    jks = decode_text(manager.secret.get("passport_rs_jks_base64"),
-                      manager.secret.get("encoded_salt"))
-    with open(manager.config.get("passport_rs_client_jks_fn"), "w") as f:
-        f.write(jks)
+    dest = manager.config.get("passport_rs_client_jks_fn")
+    manager.secret.to_file("passport_rs_jks_base64", dest, decode=True, binary_mode=True)
 
 
 def modify_jetty_xml():
@@ -140,12 +118,8 @@ def patch_finishlogin_xhtml():
 
 
 def sync_couchbase_pkcs12():
-    with open(manager.config.get("couchbaseTrustStoreFn"), "wb") as fw:
-        pkcs = decode_text(
-            manager.secret.get("couchbase_pkcs12_base64"),
-            manager.secret.get("encoded_salt"),
-        )
-        fw.write(pkcs)
+    dest = manager.config.get("couchbaseTrustStoreFn")
+    manager.secret.to_file("couchbase_pkcs12_base64", dest, decode=True, binary_mode=True)
 
 
 def render_gluu_properties():
