@@ -21,45 +21,6 @@ def render_salt():
             fw.write(rendered_txt)
 
 
-def render_ssl_cert():
-    manager.secret.to_file("ssl_cert", "/etc/certs/gluu_https.crt")
-
-
-def render_ssl_key():
-    manager.secret.to_file("ssl_key", "/etc/certs/gluu_https.key")
-
-
-def sync_ldap_pkcs12():
-    dest = manager.config.get("ldapTrustStoreFn")
-    manager.secret.to_file("ldap_pkcs12_base64", dest, decode=True, binary_mode=True)
-
-
-def render_idp_cert():
-    manager.secret.to_file("shibIDP_cert", "/etc/certs/shibIDP.crt", decode=True)
-
-
-def render_idp_key():
-    manager.secret.to_file("shibIDP_key", "/etc/certs/shibIDP.key", decode=True)
-
-
-def render_idp_signing_cert():
-    manager.secret.to_file("idp3SigningCertificateText", "/etc/certs/idp-signing.crt")
-
-
-def render_idp_encryption_cert():
-    manager.secret.to_file("idp3EncryptionCertificateText", "/etc/certs/idp-encryption.crt")
-
-
-def render_scim_rs_jks():
-    dest = manager.config.get("scim_rs_client_jks_fn")
-    manager.secret.to_file("scim_rs_jks_base64", dest, decode=True, binary_mode=True)
-
-
-def render_passport_rs_jks():
-    dest = manager.config.get("passport_rs_client_jks_fn")
-    manager.secret.to_file("passport_rs_jks_base64", dest, decode=True, binary_mode=True)
-
-
 def modify_jetty_xml():
     fn = "/opt/jetty/etc/jetty.xml"
     with open(fn) as f:
@@ -117,11 +78,6 @@ def patch_finishlogin_xhtml():
         f.write(patch)
 
 
-def sync_couchbase_pkcs12():
-    dest = manager.config.get("couchbaseTrustStoreFn")
-    manager.secret.to_file("couchbase_pkcs12_base64", dest, decode=True, binary_mode=True)
-
-
 def render_gluu_properties():
     with open("/app/templates/gluu.properties.tmpl") as fr:
         txt = fr.read()
@@ -176,7 +132,11 @@ def get_couchbase_mappings():
         "site": {
             "bucket": "gluu_site",
             "alias": "site",
-        }
+        },
+        "authorization": {
+            "bucket": "gluu_authorization",
+            "alias": "authorizations",
+        },
     }
 
     if GLUU_PERSISTENCE_TYPE == "hybrid":
@@ -262,23 +222,45 @@ if __name__ == "__main__":
 
     if GLUU_PERSISTENCE_TYPE in ("ldap", "hybrid"):
         render_ldap_properties()
-        sync_ldap_pkcs12()
+        manager.secret.to_file(
+            "ldap_pkcs12_base64",
+            manager.config.get("ldapTrustStoreFn"),
+            decode=True,
+            binary_mode=True,
+        )
 
     if GLUU_PERSISTENCE_TYPE in ("couchbase", "hybrid"):
         render_couchbase_properties()
-        sync_couchbase_pkcs12()
+        manager.secret.to_file(
+            "couchbase_pkcs12_base64",
+            manager.config.get("couchbaseTrustStoreFn"),
+            decode=True,
+            binary_mode=True,
+        )
 
     if GLUU_PERSISTENCE_TYPE == "hybrid":
         render_hybrid_properties()
 
-    render_ssl_cert()
-    render_ssl_key()
-    render_idp_cert()
-    render_idp_key()
-    render_idp_signing_cert()
-    render_idp_encryption_cert()
-    render_scim_rs_jks()
-    render_passport_rs_jks()
+    manager.secret.to_file("ssl_cert", "/etc/certs/gluu_https.crt")
+    manager.secret.to_file("ssl_key", "/etc/certs/gluu_https.key")
+
+    manager.secret.to_file("shibIDP_cert", "/etc/certs/shibIDP.crt", decode=True)
+    manager.secret.to_file("shibIDP_key", "/etc/certs/shibIDP.key", decode=True)
+    manager.secret.to_file("idp3SigningCertificateText", "/etc/certs/idp-signing.crt")
+    manager.secret.to_file("idp3EncryptionCertificateText", "/etc/certs/idp-encryption.crt")
+    manager.secret.to_file(
+        "scim_rs_jks_base64",
+        manager.config.get("scim_rs_client_jks_fn"),
+        decode=True,
+        binary_mode=True,
+    )
+    manager.secret.to_file(
+        "passport_rs_jks_base64",
+        manager.config.get("passport_rs_client_jks_fn"),
+        decode=True,
+        binary_mode=True,
+    )
+
     modify_jetty_xml()
     modify_webdefault_xml()
     patch_finishlogin_xhtml()

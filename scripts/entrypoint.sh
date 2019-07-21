@@ -31,12 +31,9 @@ pull_shared_shib_files() {
 get_java_opts() {
     local java_opts="
         -server \
-        -Xms256m \
-        -Xmx2048m \
-        -XX:+UnlockExperimentalVMOptions \
-        -XX:+UseCGroupMemoryLimitForHeap \
-        -XX:MaxRAMFraction=$GLUU_MAX_RAM_FRACTION \
         -XX:+DisableExplicitGC \
+        -XX:+UseContainerSupport \
+        -XX:MaxRAMPercentage=$GLUU_MAX_RAM_PERCENTAGE \
         -Dgluu.base=/etc/gluu \
         -Dserver.base=/opt/gluu/jetty/identity \
         -Dlog.base=/opt/gluu/jetty/identity \
@@ -81,10 +78,10 @@ esac
 # check mapping used by LDAP
 if [ "${GLUU_PERSISTENCE_TYPE}" = "hybrid" ]; then
     case "${GLUU_PERSISTENCE_LDAP_MAPPING}" in
-        default|user|cache|site|statistic)
+        default|user|cache|site|statistic|authorization)
             ;;
         *)
-            echo "unsupported GLUU_PERSISTENCE_LDAP_MAPPING value; please choose 'default', 'user', 'cache', 'site', or 'statistic'"
+            echo "unsupported GLUU_PERSISTENCE_LDAP_MAPPING value; please choose 'default', 'user', 'cache', 'site', 'statistic', or 'authorization'"
             exit 1
             ;;
     esac
