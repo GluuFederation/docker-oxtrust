@@ -50,7 +50,7 @@ RUN wget -q https://ox.gluu.org/dist/jython/${JYTHON_VERSION}/jython-installer.j
 # =======
 
 ENV OX_VERSION=4.0.b1 \
-    OX_BUILD_DATE=2019-07-19
+    OX_BUILD_DATE=2019-07-23
 
 # the LABEL defined before downloading ox war/jar files to make sure
 # it gets the latest build for specific version
@@ -172,7 +172,7 @@ RUN mkdir -p /etc/certs /deploy /opt/shibboleth-idp \
 
 # Copy templates
 COPY jetty/identity_web_resources.xml ${JETTY_BASE}/identity/webapps/
-COPY jetty/idp-metadata.xml ${JETTY_BASE}/identity/conf/shibboleth3/idp/idp-metadata.xml
+# COPY jetty/idp-metadata.xml ${JETTY_BASE}/identity/conf/shibboleth3/idp/idp-metadata.xml
 COPY conf/oxTrustLogRotationConfiguration.xml /etc/gluu/conf/
 COPY conf/*.tmpl /app/templates/
 COPY scripts /app/scripts
