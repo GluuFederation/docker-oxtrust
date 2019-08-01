@@ -49,8 +49,8 @@ RUN wget -q https://ox.gluu.org/dist/jython/${JYTHON_VERSION}/jython-installer.j
 # oxTrust
 # =======
 
-ENV OX_VERSION=4.0.b1 \
-    OX_BUILD_DATE=2019-07-23
+ENV OX_VERSION=4.0.b2 \
+    OX_BUILD_DATE=2019-07-31
 
 # the LABEL defined before downloading ox war/jar files to make sure
 # it gets the latest build for specific version
@@ -64,9 +64,10 @@ RUN wget -q https://ox.gluu.org/maven/org/gluu/oxtrust-server/${OX_VERSION}/oxtr
     && mkdir -p ${JETTY_BASE}/identity/webapps/identity \
     && unzip -qq /tmp/oxtrust.war -d ${JETTY_BASE}/identity/webapps/identity \
     && java -jar ${JETTY_HOME}/start.jar jetty.home=${JETTY_HOME} jetty.base=${JETTY_BASE}/identity --add-to-start=server,deploy,annotations,resources,http,http-forwarded,threadpool,jsp,ext,websocket \
-    && rm -f /tmp/oxtrust.war \
-    && mkdir -p ${JETTY_BASE}/identity/conf \
-    && unzip -q ${JETTY_BASE}/identity/webapps/identity/WEB-INF/lib/oxtrust-configuration-${OX_VERSION}.jar shibboleth3/* -d /opt/gluu/jetty/identity/conf
+    && rm -f /tmp/oxtrust.war
+
+# RUN mkdir -p ${JETTY_BASE}/identity/conf \
+#     && unzip -q ${JETTY_BASE}/identity/webapps/identity/WEB-INF/lib/oxtrust-configuration-${OX_VERSION}.jar shibboleth3/* -d /opt/gluu/jetty/identity/conf
 
 # ======
 # Facter
