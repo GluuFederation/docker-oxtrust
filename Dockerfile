@@ -49,25 +49,18 @@ RUN wget -q https://ox.gluu.org/dist/jython/${JYTHON_VERSION}/jython-installer.j
 # oxTrust
 # =======
 
-ENV OX_VERSION=4.0.b2 \
-    OX_BUILD_DATE=2019-07-31
-
-# the LABEL defined before downloading ox war/jar files to make sure
-# it gets the latest build for specific version
-LABEL maintainer="Gluu Inc. <support@gluu.org>" \
-    vendor="Gluu Federation" \
-    org.gluu.oxtrust-server.version="${OX_VERSION}" \
-    org.gluu.oxtrust-server.build-date="${OX_BUILD_DATE}"
+ENV GLUU_VERSION=4.0.b3 \
+    GLUU_BUILD_DATE=2019-08-15
 
 # Install oxTrust
-RUN wget -q https://ox.gluu.org/maven/org/gluu/oxtrust-server/${OX_VERSION}/oxtrust-server-${OX_VERSION}.war -O /tmp/oxtrust.war \
+RUN wget -q https://ox.gluu.org/maven/org/gluu/oxtrust-server/${GLUU_VERSION}/oxtrust-server-${GLUU_VERSION}.war -O /tmp/oxtrust.war \
     && mkdir -p ${JETTY_BASE}/identity/webapps/identity \
     && unzip -qq /tmp/oxtrust.war -d ${JETTY_BASE}/identity/webapps/identity \
     && java -jar ${JETTY_HOME}/start.jar jetty.home=${JETTY_HOME} jetty.base=${JETTY_BASE}/identity --add-to-start=server,deploy,annotations,resources,http,http-forwarded,threadpool,jsp,ext,websocket \
     && rm -f /tmp/oxtrust.war
 
 # RUN mkdir -p ${JETTY_BASE}/identity/conf \
-#     && unzip -q ${JETTY_BASE}/identity/webapps/identity/WEB-INF/lib/oxtrust-configuration-${OX_VERSION}.jar shibboleth3/* -d /opt/gluu/jetty/identity/conf
+#     && unzip -q ${JETTY_BASE}/identity/webapps/identity/WEB-INF/lib/oxtrust-configuration-${GLUU_VERSION}.jar shibboleth3/* -d /opt/gluu/jetty/identity/conf
 
 # ======
 # Facter
@@ -162,6 +155,14 @@ ENV GLUU_SHIB_SOURCE_DIR=/opt/shibboleth-idp \
 # misc stuff
 # ==========
 
+LABEL name="oxTrust" \
+    maintainer="Gluu Inc. <support@gluu.org>" \
+    vendor="Gluu Federation" \
+    version="4.0.0" \
+    release="dev" \
+    summary="Gluu oxTrust" \
+    description="Gluu Server UI for managing authentication, authorization and users"
+
 RUN mkdir -p /etc/certs /deploy /opt/shibboleth-idp \
     && mkdir -p /etc/gluu/conf \
     && mkdir -p /var/gluu/photos /var/gluu/identity/removed /var/gluu/identity/cr-snapshots \
@@ -177,6 +178,7 @@ COPY jetty/identity_web_resources.xml ${JETTY_BASE}/identity/webapps/
 COPY conf/oxTrustLogRotationConfiguration.xml /etc/gluu/conf/
 COPY conf/*.tmpl /app/templates/
 COPY scripts /app/scripts
+RUN chmod +x /app/scripts/entrypoint.sh
 
 # # create jetty user
 # RUN useradd -ms /bin/sh --uid 1000 jetty \
@@ -201,4 +203,4 @@ COPY scripts /app/scripts
 # USER 1000
 
 ENTRYPOINT ["tini", "-g", "--"]
-CMD ["sh", "/app/scripts/entrypoint.sh"]
+CMD ["/app/scripts/entrypoint.sh"]
