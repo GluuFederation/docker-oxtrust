@@ -115,35 +115,35 @@ def get_couchbase_mappings():
     mappings = {
         "default": {
             "bucket": "gluu",
-            "alias": "",
+            "mapping": "",
         },
         "user": {
             "bucket": "gluu_user",
-            "alias": "people, groups"
+            "mapping": "people, group"
         },
         "cache": {
             "bucket": "gluu_cache",
-            "alias": "cache",
+            "mapping": "cache",
         },
         "statistic": {
             "bucket": "gluu_statistic",
-            "alias": "statistic",
+            "mapping": "statistic",
         },
         "site": {
             "bucket": "gluu_site",
-            "alias": "cache-refresh",
+            "mapping": "cache-refresh",
         },
         "authorization": {
             "bucket": "gluu_authorization",
-            "alias": "authorizations",
+            "mapping": "authorization",
         },
-        "tokens": {
-            "bucket": "gluu_tokens",
-            "alias": "tokens"
+        "token": {
+            "bucket": "gluu_token",
+            "mapping": "tokens"
         },
-        "clients": {
-            "bucket": "gluu_clients",
-            "alias": "clients",
+        "client": {
+            "bucket": "gluu_client",
+            "mapping": "client",
         },
     }
 
@@ -164,11 +164,11 @@ def render_couchbase_properties():
     for _, mapping in _couchbase_mappings.iteritems():
         couchbase_buckets.append(mapping["bucket"])
 
-        if not mapping["alias"]:
+        if not mapping["mapping"]:
             continue
 
         couchbase_mappings.append("bucket.{0}.mapping: {1}".format(
-            mapping["bucket"], mapping["alias"],
+            mapping["bucket"], mapping["mapping"],
         ))
 
     # always have `gluu` as default bucket
@@ -207,7 +207,7 @@ def render_hybrid_properties():
         default_storage = "couchbase"
 
     couchbase_mappings = [
-        mapping["alias"] for name, mapping in _couchbase_mappings.iteritems()
+        mapping["mapping"] for name, mapping in _couchbase_mappings.iteritems()
         if name != ldap_mapping
     ]
 
@@ -218,7 +218,7 @@ def render_hybrid_properties():
         "storage.couchbase.mapping: {}".format(
             ", ".join(filter(None, couchbase_mappings))
         ),
-    ]).replace("user", "people, groups")
+    ]).replace("user", "people, group")
 
     with open("/etc/gluu/conf/gluu-hybrid.properties", "w") as fw:
         fw.write(out)
