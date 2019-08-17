@@ -119,7 +119,7 @@ def get_couchbase_mappings():
         },
         "user": {
             "bucket": "gluu_user",
-            "mapping": "people, group"
+            "mapping": "people, groups"
         },
         "cache": {
             "bucket": "gluu_cache",
@@ -135,7 +135,7 @@ def get_couchbase_mappings():
         },
         "authorization": {
             "bucket": "gluu_authorization",
-            "mapping": "authorization",
+            "mapping": "authorizations",
         },
         "token": {
             "bucket": "gluu_token",
@@ -143,7 +143,7 @@ def get_couchbase_mappings():
         },
         "client": {
             "bucket": "gluu_client",
-            "mapping": "client",
+            "mapping": "clients",
         },
     }
 
@@ -218,7 +218,7 @@ def render_hybrid_properties():
         "storage.couchbase.mapping: {}".format(
             ", ".join(filter(None, couchbase_mappings))
         ),
-    ]).replace("user", "people, group")
+    ]).replace("user", "people, groups")
 
     with open("/etc/gluu/conf/gluu-hybrid.properties", "w") as fw:
         fw.write(out)
