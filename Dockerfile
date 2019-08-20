@@ -163,14 +163,22 @@ LABEL name="oxTrust" \
     summary="Gluu oxTrust" \
     description="Gluu Server UI for managing authentication, authorization and users"
 
-RUN mkdir -p /etc/certs /deploy /opt/shibboleth-idp \
-    && mkdir -p /etc/gluu/conf \
-    && mkdir -p /var/gluu/photos /var/gluu/identity/removed /var/gluu/identity/cr-snapshots \
-    && mkdir -p ${JETTY_BASE}/identity/custom/pages ${JETTY_BASE}/identity/custom/static \
-    && mkdir -p ${JETTY_BASE}/identity/custom/i18n ${JETTY_BASE}/identity/custom/libs \
-    && mkdir -p /app/scripts \
-    && mkdir -p /app/templates \
-    && mkdir -p /opt/shared-shibboleth-idp
+RUN mkdir -p /etc/certs \
+    /deploy \
+    /opt/shibboleth-idp \
+    /etc/gluu/conf/shibboleth3 \
+    /var/gluu/photos \
+    /var/gluu/identity/removed \
+    /var/gluu/identity/cr-snapshots \
+    ${JETTY_BASE}/identity/custom/pages \
+    ${JETTY_BASE}/identity/custom/static \
+    ${JETTY_BASE}/identity/custom/i18n \
+    ${JETTY_BASE}/identity/custom/libs \
+    ${JETTY_BASE}/identity/conf/shibboleth3/idp \
+    ${JETTY_BASE}/identity/conf/shibboleth3/sp \
+    /app/scripts \
+    /app/templates \
+    /opt/shared-shibboleth-idp
 
 # Copy templates
 COPY jetty/identity_web_resources.xml ${JETTY_BASE}/identity/webapps/
