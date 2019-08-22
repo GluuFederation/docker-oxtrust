@@ -18,7 +18,7 @@ RUN apk update && apk add --no-cache \
 # Jetty
 # =====
 
-ENV JETTY_VERSION=9.4.19.v20190610 \
+ENV JETTY_VERSION=9.4.15.v20190215 \
     JETTY_HOME=/opt/jetty \
     JETTY_BASE=/opt/gluu/jetty \
     JETTY_USER_HOME_LIB=/home/jetty/lib
