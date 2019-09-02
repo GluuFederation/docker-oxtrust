@@ -49,8 +49,8 @@ RUN wget -q https://ox.gluu.org/dist/jython/${JYTHON_VERSION}/jython-installer.j
 # oxTrust
 # =======
 
-ENV GLUU_VERSION=4.0.b3 \
-    GLUU_BUILD_DATE=2019-08-16
+ENV GLUU_VERSION=4.0.b4 \
+    GLUU_BUILD_DATE=2019-08-30
 
 # Install oxTrust
 RUN wget -q https://ox.gluu.org/maven/org/gluu/oxtrust-server/${GLUU_VERSION}/oxtrust-server-${GLUU_VERSION}.war -O /tmp/oxtrust.war \
@@ -131,9 +131,6 @@ ENV GLUU_SECRET_ADAPTER=vault \
 # Persistence ENV
 # ===============
 
-# available options: couchbase, ldap, hybrid
-# only takes affect when GLUU_PERSISTENCE_TYPE is hybrid
-# available options: default, user, cache, site, statistic
 ENV GLUU_PERSISTENCE_TYPE=ldap \
     GLUU_PERSISTENCE_LDAP_MAPPING=default \
     GLUU_COUCHBASE_URL=localhost \
