@@ -49,8 +49,8 @@ RUN wget -q https://ox.gluu.org/dist/jython/${JYTHON_VERSION}/jython-installer.j
 # oxTrust
 # =======
 
-ENV GLUU_VERSION=4.0.b4 \
-    GLUU_BUILD_DATE=2019-09-06
+ENV GLUU_VERSION=4.0.rc1 \
+    GLUU_BUILD_DATE=2019-09-11
 
 # Install oxTrust
 RUN wget -q https://ox.gluu.org/maven/org/gluu/oxtrust-server/${GLUU_VERSION}/oxtrust-server-${GLUU_VERSION}.war -O /tmp/oxtrust.war \
@@ -142,10 +142,10 @@ ENV GLUU_PERSISTENCE_TYPE=ldap \
 
 ENV GLUU_SHIB_SOURCE_DIR=/opt/shibboleth-idp \
     GLUU_SHIB_TARGET_DIR=/opt/shared-shibboleth-idp \
-    GLUU_MAX_RAM_PERCENTAGE=25.0 \
+    GLUU_MAX_RAM_PERCENTAGE=75.0 \
     GLUU_OXAUTH_BACKEND=localhost:8081 \
     GLUU_WAIT_MAX_TIME=300 \
-    GLUU_WAIT_SLEEP_DURATION=5 \
+    GLUU_WAIT_SLEEP_DURATION=10 \
     PYTHON_HOME=/opt/jython
 
 # ==========

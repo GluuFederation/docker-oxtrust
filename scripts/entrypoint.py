@@ -97,7 +97,7 @@ if __name__ == "__main__":
         sync_couchbase_truststore(manager)
 
     if persistence_type == "hybrid":
-        render_hybrid_properties()
+        render_hybrid_properties("/etc/gluu/conf/gluu-hybrid.properties")
 
     get_server_certificate(manager.config.get("hostname"), 443, "/etc/certs/gluu_https.crt")
     cert_to_truststore(

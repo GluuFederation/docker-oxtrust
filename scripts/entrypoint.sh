@@ -15,7 +15,6 @@ pull_shared_shib_files() {
 
 get_java_opts() {
     local java_opts="
-        -server \
         -XX:+DisableExplicitGC \
         -XX:+UseContainerSupport \
         -XX:MaxRAMPercentage=$GLUU_MAX_RAM_PERCENTAGE \
@@ -115,4 +114,4 @@ mkdir -p /opt/gluu/radius && echo 'dummy file to enable Radius menu' > /opt/gluu
 cd /opt/gluu/jetty/identity
 exec java \
      $(get_java_opts) \
-     -jar /opt/jetty/start.jar
+     -jar /opt/jetty/start.jar -server
