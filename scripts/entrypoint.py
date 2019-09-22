@@ -99,7 +99,9 @@ if __name__ == "__main__":
     if persistence_type == "hybrid":
         render_hybrid_properties("/etc/gluu/conf/gluu-hybrid.properties")
 
-    get_server_certificate(manager.config.get("hostname"), 443, "/etc/certs/gluu_https.crt")
+    if not os.path.isfile("/etc/certs/gluu_https.crt"):
+        get_server_certificate(manager.config.get("hostname"), 443, "/etc/certs/gluu_https.crt")
+
     cert_to_truststore(
         "gluu_https",
         "/etc/certs/gluu_https.crt",

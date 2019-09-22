@@ -13,27 +13,27 @@ pull_shared_shib_files() {
     fi
 }
 
-get_java_opts() {
-    local java_opts="
-        -XX:+DisableExplicitGC \
-        -XX:+UseContainerSupport \
-        -XX:MaxRAMPercentage=$GLUU_MAX_RAM_PERCENTAGE \
-        -Dgluu.base=/etc/gluu \
-        -Dserver.base=/opt/gluu/jetty/identity \
-        -Dlog.base=/opt/gluu/jetty/identity \
-        -Dorg.eclipse.jetty.server.Request.maxFormContentSize=50000000 \
-        -Dpython.home=/opt/jython
-
-    "
-
+get_debug_opt() {
+    debug_opt=""
     if [ -n "${GLUU_DEBUG_PORT}" ]; then
-        java_opts="
-            ${java_opts}
+        debug_opt="
             -agentlib:jdwp=transport=dt_socket,address=${GLUU_DEBUG_PORT},server=y,suspend=n
         "
     fi
 
-    echo "${java_opts}"
+    echo "${debug_opt}"
+}
+
+run_wait() {
+    python /app/scripts/wait.py
+}
+
+run_entrypoint() {
+    if [ ! -f /deploy/touched ]; then
+        python /app/scripts/entrypoint.py
+        pull_shared_shib_files
+        touch /deploy/touched
+    fi
 }
 
 # ==========
@@ -49,54 +49,12 @@ cat << LICENSE_ACK
 
 LICENSE_ACK
 
-# check persistence type
-case "${GLUU_PERSISTENCE_TYPE}" in
-    ldap|couchbase|hybrid)
-        ;;
-    *)
-        echo "unsupported GLUU_PERSISTENCE_TYPE value; please choose 'ldap', 'couchbase', or 'hybrid'"
-        exit 1
-        ;;
-esac
-
-# check mapping used by LDAP
-if [ "${GLUU_PERSISTENCE_TYPE}" = "hybrid" ]; then
-    case "${GLUU_PERSISTENCE_LDAP_MAPPING}" in
-        default|user|cache|site|token)
-            ;;
-        *)
-            echo "unsupported GLUU_PERSISTENCE_LDAP_MAPPING value; please choose 'default', 'user', 'cache', 'site', or 'token'"
-            exit 1
-            ;;
-    esac
-fi
-
-# run wait_for functions
-deps="config,secret"
-
-if [ "${GLUU_PERSISTENCE_TYPE}" = "hybrid" ]; then
-    deps="${deps},ldap,couchbase"
-else
-    deps="${deps},${GLUU_PERSISTENCE_TYPE}"
-fi
-
-deps="$deps,oxauth"
-
 if [ -f /etc/redhat-release ]; then
-    source scl_source enable python27 && gluu-wait --deps="${deps}"
+    source scl_source enable python27 && run_wait
+    source scl_source enable python27 && run_entrypoint
 else
-    gluu-wait --deps="${deps}"
-fi
-
-if [ ! -f /deploy/touched ]; then
-    if [ -f /etc/redhat-release ]; then
-        source scl_source enable python27 && python /app/scripts/entrypoint.py
-    else
-        python /app/scripts/entrypoint.py
-    fi
-
-    pull_shared_shib_files
-    touch /deploy/touched
+    run_wait
+    run_entrypoint
 fi
 
 # monitor filesystem changes on Shibboleth-related files
@@ -113,5 +71,15 @@ mkdir -p /opt/gluu/radius && echo 'dummy file to enable Radius menu' > /opt/gluu
 
 cd /opt/gluu/jetty/identity
 exec java \
-     $(get_java_opts) \
-     -jar /opt/jetty/start.jar -server
+    -server \
+    -XX:+DisableExplicitGC \
+    -XX:+UseContainerSupport \
+    -XX:MaxRAMPercentage=$GLUU_MAX_RAM_PERCENTAGE \
+    -Dgluu.base=/etc/gluu \
+    -Dserver.base=/opt/gluu/jetty/identity \
+    -Dlog.base=/opt/gluu/jetty/identity \
+    -Dorg.eclipse.jetty.server.Request.maxFormContentSize=50000000 \
+    -Dpython.home=/opt/jython \
+    -Djava.io.tmpdir=/tmp \
+    $(get_debug_opt) \
+    -jar /opt/jetty/start.jar
