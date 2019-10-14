@@ -85,6 +85,11 @@ if __name__ == "__main__":
             "/app/templates/gluu-ldap.properties.tmpl",
             "/etc/gluu/conf/gluu-ldap.properties",
         )
+        manager.secret.to_file(
+            "ldap_ssl_cert",
+            "/etc/certs/opendj.crt",
+            decode=True,
+        )
         sync_ldap_truststore(manager)
 
     if persistence_type in ("couchbase", "hybrid"):

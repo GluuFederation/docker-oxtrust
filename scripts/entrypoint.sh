@@ -32,6 +32,7 @@ run_entrypoint() {
     if [ ! -f /deploy/touched ]; then
         python /app/scripts/entrypoint.py
         pull_shared_shib_files
+        ln -s /etc/certs/gluu_https.crt /etc/certs/httpd.crt
         touch /deploy/touched
     fi
 }
