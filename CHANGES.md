@@ -2,6 +2,13 @@
 
 Here you can see an overview of changes between each release.
 
+## Version 4.0.0_01
+
+Released on October 22nd, 2019.
+
+* Upgraded to Gluu Server 4.0.
+* Fixed minor issue in UI where some of the certificate info are missing.
+
 ## Version 3.1.6_03
 
 Released on May 10th, 2019.
