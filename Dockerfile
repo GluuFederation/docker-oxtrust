@@ -50,7 +50,7 @@ RUN wget -q https://ox.gluu.org/maven/org/gluu/oxtrust-server/${GLUU_VERSION}/ox
     && unzip -qq /tmp/oxtrust.war -d ${JETTY_BASE}/identity/webapps/identity \
     && java -jar ${JETTY_HOME}/start.jar jetty.home=${JETTY_HOME} jetty.base=${JETTY_BASE}/identity --add-to-start=server,deploy,annotations,resources,http,http-forwarded,threadpool,jsp,websocket \
     && rm -f /tmp/oxtrust.war
-
+    
 # RUN mkdir -p ${JETTY_BASE}/identity/conf \
 #     && unzip -q ${JETTY_BASE}/identity/webapps/identity/WEB-INF/lib/oxtrust-configuration-${GLUU_VERSION}.jar shibboleth3/* -d /opt/gluu/jetty/identity/conf
 
@@ -185,6 +185,9 @@ COPY conf/oxTrustLogRotationConfiguration.xml /etc/gluu/conf/
 COPY conf/*.tmpl /app/templates/
 COPY scripts /app/scripts
 RUN chmod +x /app/scripts/entrypoint.sh
+
+# Install oxTrust API
+RUN wget -q https://ox.gluu.org/maven/org/gluu/oxtrust-api-server/${GLUU_VERSION}/oxtrust-api-server-${GLUU_VERSION}.jar -O ${JETTY_BASE}/identity/custom/libs/oxtrust-api-server-${GLUU_VERSION}.jar
 
 # # create jetty user
 # RUN useradd -ms /bin/sh --uid 1000 jetty \
