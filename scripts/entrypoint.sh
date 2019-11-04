@@ -29,6 +29,12 @@ run_wait() {
 }
 
 run_entrypoint() {
+    # move oxtrust-api lib
+    if [ ! -f /opt/gluu/jetty/identity/custom/libs/oxtrust-api-server-${GLUU_VERSION}.jar ]; then
+        mkdir -p /opt/gluu/jetty/identity/custom/libs
+        mv /tmp/oxtrust-api-server-${GLUU_VERSION}.jar /opt/gluu/jetty/identity/custom/libs/oxtrust-api-server-${GLUU_VERSION}.jar
+    fi
+
     if [ ! -f /deploy/touched ]; then
         python /app/scripts/entrypoint.py
         pull_shared_shib_files
@@ -71,6 +77,7 @@ mkdir -p /opt/gluu/radius && echo 'dummy file to enable Radius menu' > /opt/gluu
 # mkdir -p /opt/gluu/jetty/idp/webapps && echo 'dummy file to enable Shibboleth3 menu' > /opt/gluu/jetty/idp/webapps/idp.war
 
 cd /opt/gluu/jetty/identity
+mkdir -p /opt/jetty/temp
 exec java \
     -server \
     -XX:+DisableExplicitGC \
@@ -81,6 +88,6 @@ exec java \
     -Dlog.base=/opt/gluu/jetty/identity \
     -Dorg.eclipse.jetty.server.Request.maxFormContentSize=50000000 \
     -Dpython.home=/opt/jython \
-    -Djava.io.tmpdir=/tmp \
+    -Djava.io.tmpdir=/opt/jetty/temp \
     $(get_debug_opt) \
     -jar /opt/jetty/start.jar

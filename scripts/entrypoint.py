@@ -133,4 +133,4 @@ if __name__ == "__main__":
 
     modify_jetty_xml()
     modify_webdefault_xml()
-    patch_finishlogin_xhtml()
+    # patch_finishlogin_xhtml()
