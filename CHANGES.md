@@ -2,6 +2,12 @@
 
 Here you can see an overview of changes between each release.
 
+## Version 4.0.1_02
+
+Released on November 5th, 2019.
+
+* Added oxTrust API endpoints (disabled by default).
+
 ## Version 4.0.1_01
 
 Released on November 1st, 2019.
