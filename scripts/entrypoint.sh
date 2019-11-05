@@ -30,9 +30,9 @@ run_wait() {
 
 run_entrypoint() {
     # move oxtrust-api lib
-    if [ ! -f /opt/gluu/jetty/identity/custom/libs/oxtrust-api-server-${GLUU_VERSION}.jar ]; then
+    if [ ! -f /opt/gluu/jetty/identity/custom/libs/oxtrust-api-server.jar ]; then
         mkdir -p /opt/gluu/jetty/identity/custom/libs
-        mv /tmp/oxtrust-api-server-${GLUU_VERSION}.jar /opt/gluu/jetty/identity/custom/libs/oxtrust-api-server-${GLUU_VERSION}.jar
+        mv /tmp/oxtrust-api-server.jar /opt/gluu/jetty/identity/custom/libs/oxtrust-api-server.jar
     fi
 
     if [ ! -f /deploy/touched ]; then

@@ -60,7 +60,7 @@ RUN wget -q https://ox.gluu.org/maven/org/gluu/oxtrust-server/${GLUU_VERSION}/ox
 # ===========
 
 # oxTrust API
-RUN wget -q https://ox.gluu.org/maven/org/gluu/oxtrust-api-server/${GLUU_VERSION}/oxtrust-api-server-${GLUU_VERSION}.jar -O /tmp/oxtrust-api-server-${GLUU_VERSION}.jar
+RUN wget -q https://ox.gluu.org/maven/org/gluu/oxtrust-api-server/${GLUU_VERSION}/oxtrust-api-server-${GLUU_VERSION}.jar -O /tmp/oxtrust-api-server.jar
 
 # ======
 # Facter
@@ -188,6 +188,7 @@ RUN mkdir -p /etc/certs \
 
 # Copy templates
 COPY jetty/identity_web_resources.xml ${JETTY_BASE}/identity/webapps/
+COPY jetty/identity.xml ${JETTY_BASE}/identity/webapps/
 # COPY jetty/idp-metadata.xml ${JETTY_BASE}/identity/conf/shibboleth3/idp/idp-metadata.xml
 COPY conf/oxTrustLogRotationConfiguration.xml /etc/gluu/conf/
 COPY conf/*.tmpl /app/templates/
