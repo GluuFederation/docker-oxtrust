@@ -2,6 +2,13 @@
 
 Here you can see an overview of changes between each release.
 
+## Version 4.0.1_03
+
+Released on November 14th, 2019.
+
+* Upgraded `pygluu-containerlib` to show connection issue with Couchbase explicitly.
+* Upgraded to oxTrust v4.0.1.Final build at 2019-11-13.
+
 ## Version 4.0.1_02
 
 Released on November 5th, 2019.
