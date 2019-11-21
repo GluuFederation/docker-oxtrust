@@ -130,6 +130,12 @@ if __name__ == "__main__":
         decode=True,
         binary_mode=True,
     )
+    manager.secret.to_file(
+        "api_rs_jks_base64",
+        manager.config.get("api_rs_client_jks_fn"),
+        decode=True,
+        binary_mode=True,
+    )
 
     modify_jetty_xml()
     modify_webdefault_xml()
