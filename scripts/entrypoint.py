@@ -1,4 +1,4 @@
-# import base64
+import base64
 import os
 import re
 
@@ -138,8 +138,8 @@ if __name__ == "__main__":
         decode=True,
         binary_mode=True,
     )
-    # with open(manager.config.get("api_rs_client_jwks_fn"), "w") as f:
-    #     f.write(base64.b64decode(manager.secret.get("api_rs_client_base64_jwks")))
+    with open(manager.config.get("api_rs_client_jwks_fn"), "w") as f:
+        f.write(base64.b64decode(manager.secret.get("api_rs_client_base64_jwks")))
 
     manager.secret.to_file(
         "api_rp_jks_base64",
@@ -147,8 +147,8 @@ if __name__ == "__main__":
         decode=True,
         binary_mode=True,
     )
-    # with open(manager.config.get("api_rp_client_jwks_fn"), "w") as f:
-    #     f.write(base64.b64decode(manager.secret.get("api_rp_client_base64_jwks")))
+    with open(manager.config.get("api_rp_client_jwks_fn"), "w") as f:
+        f.write(base64.b64decode(manager.secret.get("api_rp_client_base64_jwks")))
 
     modify_jetty_xml()
     modify_webdefault_xml()
