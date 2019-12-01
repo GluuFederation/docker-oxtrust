@@ -42,12 +42,12 @@ RUN wget -q https://ox.gluu.org/dist/jython/${JYTHON_VERSION}/jython-installer.j
 # =======
 
 ENV GLUU_VERSION=4.0.1.Final \
-    GLUU_BUILD_DATE=2019-11-20
+    GLUU_BUILD_DATE=2019-11-30
 
 # Install oxTrust
 RUN wget -q https://ox.gluu.org/maven/org/gluu/oxtrust-server/${GLUU_VERSION}/oxtrust-server-${GLUU_VERSION}.war -O /tmp/oxtrust.war \
-    && mkdir -p ${JETTY_BASE}/identity/webapps/ \
-    && mv /tmp/oxtrust.war ${JETTY_BASE}/identity/webapps/identity.war \
+    && mkdir -p ${JETTY_BASE}/identity/webapps/identity \
+    && unzip -qq /tmp/oxtrust.war -d ${JETTY_BASE}/identity/webapps/identity \
     && java -jar ${JETTY_HOME}/start.jar jetty.home=${JETTY_HOME} jetty.base=${JETTY_BASE}/identity --add-to-start=server,deploy,annotations,resources,http,http-forwarded,threadpool,jsp,websocket \
     && rm -f /tmp/oxtrust.war
 
@@ -164,7 +164,7 @@ LABEL name="oxTrust" \
     maintainer="Gluu Inc. <support@gluu.org>" \
     vendor="Gluu Federation" \
     version="4.0.1" \
-    release="04" \
+    release="05" \
     summary="Gluu oxTrust" \
     description="Gluu Server UI for managing authentication, authorization and users"
 

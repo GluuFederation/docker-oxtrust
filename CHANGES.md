@@ -2,6 +2,13 @@
 
 Here you can see an overview of changes between each release.
 
+## Version 4.0.1_05
+
+Released on December 1st, 2019.
+
+* Upgraded `oxtrust-server` v4.0.1.Final build at 2019-11-30.
+* Pulled oxTrust API RP and RS client keystores and JWKS files upon container deployment.
+
 ## Version 4.0.1_04
 
 Released on November 19th, 2019.
