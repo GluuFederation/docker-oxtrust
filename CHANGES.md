@@ -2,6 +2,12 @@
 
 Here you can see an overview of changes between each release.
 
+## Version 4.0.1_06
+
+Released on December 25th, 2019.
+
+* Pulled SCIM RP and RS client keystores and JWKS files upon container deployment. Reference: https://github.com/GluuFederation/enterprise-edition/issues/22.
+
 ## Version 4.0.1_05
 
 Released on December 1st, 2019.
