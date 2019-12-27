@@ -12,7 +12,7 @@ RUN apk update \
 # Jetty
 # =====
 
-ENV JETTY_VERSION=9.4.15.v20190215 \
+ENV JETTY_VERSION=9.4.24.v20191120 \
     JETTY_HOME=/opt/jetty \
     JETTY_BASE=/opt/gluu/jetty \
     JETTY_USER_HOME_LIB=/home/jetty/lib
@@ -41,8 +41,8 @@ RUN wget -q https://ox.gluu.org/dist/jython/${JYTHON_VERSION}/jython-installer.j
 # oxTrust
 # =======
 
-ENV GLUU_VERSION=4.0.1.Final \
-    GLUU_BUILD_DATE=2019-11-30
+ENV GLUU_VERSION=4.1.0.Final \
+    GLUU_BUILD_DATE=2019-12-26
 
 # Install oxTrust
 RUN wget -q https://ox.gluu.org/maven/org/gluu/oxtrust-server/${GLUU_VERSION}/oxtrust-server-${GLUU_VERSION}.war -O /tmp/oxtrust.war \
@@ -163,8 +163,8 @@ ENV GLUU_SHIB_SOURCE_DIR=/opt/shibboleth-idp \
 LABEL name="oxTrust" \
     maintainer="Gluu Inc. <support@gluu.org>" \
     vendor="Gluu Federation" \
-    version="4.0.1" \
-    release="06" \
+    version="4.1.0" \
+    release="dev" \
     summary="Gluu oxTrust" \
     description="Gluu Server UI for managing authentication, authorization and users"
 
