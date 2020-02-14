@@ -138,11 +138,13 @@ ENV GLUU_SECRET_ADAPTER=vault \
 
 ENV GLUU_PERSISTENCE_TYPE=ldap \
     GLUU_PERSISTENCE_LDAP_MAPPING=default \
+    GLUU_LDAP_URL=localhost:1636 \
     GLUU_COUCHBASE_URL=localhost \
     GLUU_COUCHBASE_USER=admin \
     GLUU_COUCHBASE_CERT_FILE=/etc/certs/couchbase.crt \
     GLUU_COUCHBASE_PASSWORD_FILE=/etc/gluu/conf/couchbase_password \
-    GLUU_LDAP_URL=localhost:1636
+    GLUU_COUCHBASE_CONN_TIMEOUT=10000 \
+    GLUU_COUCHBASE_CONN_MAX_WAIT=20000
 
 # ===========
 # Generic ENV

@@ -1,7 +1,7 @@
 servers: %(hostname)s
 
-connection.connect-timeout:10000
-connection.connection-max-wait-time: 20000
+connection.connect-timeout: %(couchbase_conn_timeout)s
+connection.connection-max-wait-time: %(couchbase_conn_max_wait)s
 connection.operation-tracing-enabled: false
 
 # If mutation tokens are enabled, they can be used for advanced durability requirements,
