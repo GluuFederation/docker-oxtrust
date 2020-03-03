@@ -5,7 +5,7 @@ FROM openjdk:8-jre-alpine3.9
 # ===============
 
 RUN apk update \
-    && apk add --no-cache coreutils inotify-tools openssl py-pip ruby shadow \
+    && apk add --no-cache coreutils inotify-tools openssl py-pip ruby \
     && apk add --no-cache --virtual build-deps wget git
 
 # =====
@@ -42,7 +42,7 @@ RUN wget -q https://ox.gluu.org/dist/jython/${JYTHON_VERSION}/jython-installer.j
 # =======
 
 ENV GLUU_VERSION=4.1.0.Final \
-    GLUU_BUILD_DATE="2020-02-17 19:15"
+    GLUU_BUILD_DATE="2020-02-28 11:48"
 
 # Install oxTrust
 RUN wget -q https://ox.gluu.org/maven/org/gluu/oxtrust-server/${GLUU_VERSION}/oxtrust-server-${GLUU_VERSION}.war -O /tmp/oxtrust.war \
