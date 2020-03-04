@@ -42,7 +42,7 @@ RUN wget -q https://ox.gluu.org/dist/jython/${JYTHON_VERSION}/jython-installer.j
 # =======
 
 ENV GLUU_VERSION=4.0.1.Final \
-    GLUU_BUILD_DATE=2020-01-18
+    GLUU_BUILD_DATE="2020-02-12 12:25"
 
 # Install oxTrust
 RUN wget -q https://ox.gluu.org/maven/org/gluu/oxtrust-server/${GLUU_VERSION}/oxtrust-server-${GLUU_VERSION}.war -O /tmp/oxtrust.war \
@@ -138,11 +138,14 @@ ENV GLUU_SECRET_ADAPTER=vault \
 
 ENV GLUU_PERSISTENCE_TYPE=ldap \
     GLUU_PERSISTENCE_LDAP_MAPPING=default \
+    GLUU_LDAP_URL=localhost:1636 \
     GLUU_COUCHBASE_URL=localhost \
     GLUU_COUCHBASE_USER=admin \
     GLUU_COUCHBASE_CERT_FILE=/etc/certs/couchbase.crt \
     GLUU_COUCHBASE_PASSWORD_FILE=/etc/gluu/conf/couchbase_password \
-    GLUU_LDAP_URL=localhost:1636
+    GLUU_COUCHBASE_CONN_TIMEOUT=10000 \
+    GLUU_COUCHBASE_CONN_MAX_WAIT=20000 \
+    GLUU_COUCHBASE_SCAN_CONSISTENCY=not_bounded
 
 # ===========
 # Generic ENV
@@ -164,7 +167,7 @@ LABEL name="oxTrust" \
     maintainer="Gluu Inc. <support@gluu.org>" \
     vendor="Gluu Federation" \
     version="4.0.1" \
-    release="06" \
+    release="07" \
     summary="Gluu oxTrust" \
     description="Gluu Server UI for managing authentication, authorization and users"
 

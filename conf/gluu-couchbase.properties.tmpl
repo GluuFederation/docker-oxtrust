@@ -1,7 +1,7 @@
 servers: %(hostname)s
 
-connection.connect-timeout:10000
-connection.connection-max-wait-time: 20000
+connection.connect-timeout: %(couchbase_conn_timeout)s
+connection.connection-max-wait-time: %(couchbase_conn_max_wait)s
 connection.operation-tracing-enabled: false
 
 # If mutation tokens are enabled, they can be used for advanced durability requirements,
@@ -13,7 +13,7 @@ connection.mutation-tokens-enabled: false
 #connection.computation-pool-size: 5
 
 # Default scan consistency. Possible values are: not_bounded, request_plus, statement_plus
-connection.scan-consistency: not_bounded
+connection.scan-consistency: %(couchbase_scan_consistency)s
 
 # Enable scopes support. Default value: false
 # connection.enable-scope-support: true
