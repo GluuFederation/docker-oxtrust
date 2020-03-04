@@ -2,6 +2,13 @@
 
 Here you can see an overview of changes between each release.
 
+## Version 4.0.1_07
+
+Released on March 5th, 2020.
+
+* Upgraded `oxtrust-server`.
+* Added ENV for customizing Couchbase connection and scan consistency.
+
 ## Version 4.0.1_06
 
 Released on December 25th, 2019.
