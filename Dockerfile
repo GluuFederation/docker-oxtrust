@@ -167,7 +167,7 @@ LABEL name="oxTrust" \
     maintainer="Gluu Inc. <support@gluu.org>" \
     vendor="Gluu Federation" \
     version="4.1.0" \
-    release="dev" \
+    release="01" \
     summary="Gluu oxTrust" \
     description="Gluu Server UI for managing authentication, authorization and users"
 
