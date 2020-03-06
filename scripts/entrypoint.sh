@@ -1,29 +1,9 @@
 #!/bin/sh
 set -e
 
-cat << LICENSE_ACK
-
-# ========================================================================================= #
-# Gluu License Agreement: https://github.com/GluuFederation/gluu-docker/blob/3.1.5/LICENSE. #
-# The use of Gluu Server Docker Edition is subject to the Gluu Support License.             #
-# ========================================================================================= #
-
-LICENSE_ACK
-
-import_ssl_cert() {
-    if [ -f /etc/certs/gluu_https.crt ]; then
-        openssl x509 -outform der -in /etc/certs/gluu_https.crt -out /etc/certs/gluu_https.der
-        keytool -importcert -trustcacerts \
-            -alias gluu_https \
-            -file /etc/certs/gluu_https.der \
-            -keystore /usr/lib/jvm/default-jvm/jre/lib/security/cacerts \
-            -storepass changeit \
-            -noprompt
-
-        # satisfy oxTrust
-        ln -s /etc/certs/gluu_https.crt /etc/certs/httpd.crt
-    fi
-}
+# =========
+# FUNCTIONS
+# =========
 
 pull_shared_shib_files() {
     # sync with existing files in target directory (mapped volume)
@@ -33,60 +13,72 @@ pull_shared_shib_files() {
     fi
 }
 
-get_java_opts() {
-    local java_opts="
-        -server \
-        -Xms256m \
-        -Xmx2048m \
-        -XX:+UnlockExperimentalVMOptions \
-        -XX:+UseCGroupMemoryLimitForHeap \
-        -XX:MaxRAMFraction=$GLUU_MAX_RAM_FRACTION \
-        -XX:+DisableExplicitGC \
-        -Dgluu.base=/etc/gluu \
-        -Dserver.base=/opt/gluu/jetty/identity \
-        -Dlog.base=/opt/gluu/jetty/identity \
-        -Dorg.eclipse.jetty.server.Request.maxFormContentSize=50000000 \
-        -Dpython.home=/opt/jython
-
-    "
-
+get_debug_opt() {
+    debug_opt=""
     if [ -n "${GLUU_DEBUG_PORT}" ]; then
-        java_opts="
-            ${java_opts}
+        debug_opt="
             -agentlib:jdwp=transport=dt_socket,address=${GLUU_DEBUG_PORT},server=y,suspend=n
         "
     fi
 
-    echo "${java_opts}"
+    echo "${debug_opt}"
 }
 
-if [ -f /etc/redhat-release ]; then
-    source scl_source enable python27 && python /opt/scripts/wait_for.py --deps="config,secret,ldap,oxauth"
-else
-    python /opt/scripts/wait_for.py --deps="config,secret,ldap,oxauth"
-fi
+run_wait() {
+    python /app/scripts/wait.py
+}
 
-if [ ! -f /deploy/touched ]; then
-    if [ -f /touched ]; then
-        # backward-compat
-        mv /touched /deploy/touched
-    else
-        if [ -f /etc/redhat-release ]; then
-            source scl_source enable python27 && python /opt/scripts/entrypoint.py
-        else
-            python /opt/scripts/entrypoint.py
-        fi
+run_entrypoint() {
+    # move oxtrust-api lib
+    if [ ! -f /opt/gluu/jetty/identity/custom/libs/oxtrust-api-server.jar ]; then
+        mkdir -p /opt/gluu/jetty/identity/custom/libs
+        mv /tmp/oxtrust-api-server.jar /opt/gluu/jetty/identity/custom/libs/oxtrust-api-server.jar
+    fi
 
-        import_ssl_cert
+    if [ ! -f /deploy/touched ]; then
+        python /app/scripts/entrypoint.py
         pull_shared_shib_files
+        ln -s /etc/certs/gluu_https.crt /etc/certs/httpd.crt
         touch /deploy/touched
     fi
+}
+
+# ==========
+# ENTRYPOINT
+# ==========
+
+if [ -f /etc/redhat-release ]; then
+    source scl_source enable python27 && run_wait
+    source scl_source enable python27 && run_entrypoint
+else
+    run_wait
+    run_entrypoint
 fi
 
 # monitor filesystem changes on Shibboleth-related files
-sh /opt/scripts/shibwatcher.sh &
+sh /app/scripts/shibwatcher.sh &
+
+# enable passport menu (a workaround for https://git.io/fjQCu)
+mkdir -p /opt/gluu/node/passport/server
+
+# enable radius menu (a workaround for https://git.io/fjQCc)
+mkdir -p /opt/gluu/radius && echo 'dummy file to enable Radius menu' > /opt/gluu/radius/super-gluu-radius-server.jar
+
+# # enable shib3 menu (a workaround for https://git.io/fjQCW)
+# mkdir -p /opt/gluu/jetty/idp/webapps && echo 'dummy file to enable Shibboleth3 menu' > /opt/gluu/jetty/idp/webapps/idp.war
 
 cd /opt/gluu/jetty/identity
+mkdir -p /opt/jetty/temp
 exec java \
-     $(get_java_opts) \
-     -jar /opt/jetty/start.jar
+    -server \
+    -XX:+DisableExplicitGC \
+    -XX:+UseContainerSupport \
+    -XX:MaxRAMPercentage=$GLUU_MAX_RAM_PERCENTAGE \
+    -Dgluu.base=/etc/gluu \
+    -Dserver.base=/opt/gluu/jetty/identity \
+    -Dlog.base=/opt/gluu/jetty/identity \
+    -Dorg.eclipse.jetty.server.Request.maxFormContentSize=50000000 \
+    -Dpython.home=/opt/jython \
+    -Djava.io.tmpdir=/opt/jetty/temp \
+    $(get_debug_opt) \
+    -jar /opt/jetty/start.jar

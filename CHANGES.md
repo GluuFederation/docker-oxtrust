@@ -2,6 +2,94 @@
 
 Here you can see an overview of changes between each release.
 
+## Version 4.1.0_01
+
+Released on March 5th, 2020.
+
+* Conformed to Gluu Server v4.1.
+
+## Version 4.0.1_07
+
+Released on March 5th, 2020.
+
+* Upgraded `oxtrust-server`.
+* Added ENV for customizing Couchbase connection and scan consistency.
+
+## Version 4.0.1_06
+
+Released on December 25th, 2019.
+
+* Pulled SCIM RP and RS client keystores and JWKS files upon container deployment. Reference: https://github.com/GluuFederation/enterprise-edition/issues/22.
+
+## Version 4.0.1_05
+
+Released on December 1st, 2019.
+
+* Upgraded `oxtrust-server` v4.0.1.Final build at 2019-11-30.
+* Pulled oxTrust API RP and RS client keystores and JWKS files upon container deployment.
+
+## Version 4.0.1_04
+
+Released on November 19th, 2019.
+
+* Upgraded to oxTrust v4.0.1.Final build at 2019-11-17.
+
+## Version 4.0.1_03
+
+Released on November 14th, 2019.
+
+* Upgraded `pygluu-containerlib` to show connection issue with Couchbase explicitly.
+* Upgraded to oxTrust v4.0.1.Final build at 2019-11-13.
+
+## Version 4.0.1_02
+
+Released on November 5th, 2019.
+
+* Added oxTrust API endpoints (disabled by default).
+
+## Version 4.0.1_01
+
+Released on November 1st, 2019.
+
+* Upgraded to Gluu Server 4.0.1.
+
+## Version 4.0.0_01
+
+Released on October 22nd, 2019.
+
+* Upgraded to Gluu Server 4.0.
+* Fixed minor issue in UI where some of the certificate info are missing.
+
+## Version 3.1.6_03
+
+Released on May 10th, 2019.
+
+* Alpine upgraded to v3.9. Ref: https://github.com/GluuFederation/gluu-docker/issues/71.
+
+## Version 3.1.6_02
+
+Released on May 8th, 2019.
+
+* Added security patch for oxTrust. Reference: https://github.com/GluuFederation/docker-oxtrust/issues/13.
+
+## Version 3.1.6_01
+
+Released on April 29th, 2019.
+
+* Upgraded to Gluu Server 3.1.6.
+
+## Version 3.1.5_04
+
+Released on May 10th, 2019.
+
+* Alpine upgraded to v3.9. Ref: https://github.com/GluuFederation/gluu-docker/issues/71.
+
+## Version 3.1.5_03
+
+Released on May 8th, 2019.
+
+* Added security patch for oxTrust. Reference: https://github.com/GluuFederation/docker-oxtrust/issues/13.
+
 ## Version 3.1.5_02
 
 Released on April 9th, 2019.

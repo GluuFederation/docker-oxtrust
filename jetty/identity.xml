@@ -1,0 +1,10 @@
+<?xml version="1.0"  encoding="ISO-8859-1"?>
+<!DOCTYPE Configure PUBLIC "-//Jetty//Configure//EN" "http://www.eclipse.org/jetty/configure_9_0.dtd">
+
+<Configure class="org.eclipse.jetty.webapp.WebAppContext">
+  <Set name="contextPath">/identity</Set>
+  <Set name="war"><Property name="jetty.webapps" default="."/>/identity</Set>
+  <Set name="extractWAR">false</Set>
+
+  <Set name="extraClasspath">./custom/libs/oxtrust-api-server.jar</Set>
+</Configure>

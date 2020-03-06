@@ -2,120 +2,19 @@ import base64
 import os
 import re
 
-import pyDes
-
-from gluulib import get_manager
-
-GLUU_LDAP_URL = os.environ.get("GLUU_LDAP_URL", "localhost:1636")
+from pygluu.containerlib import get_manager
+from pygluu.containerlib.persistence import render_salt
+from pygluu.containerlib.persistence import render_gluu_properties
+from pygluu.containerlib.persistence import render_ldap_properties
+from pygluu.containerlib.persistence import render_couchbase_properties
+from pygluu.containerlib.persistence import render_hybrid_properties
+from pygluu.containerlib.persistence import sync_ldap_truststore
+from pygluu.containerlib.persistence import sync_couchbase_cert
+from pygluu.containerlib.persistence import sync_couchbase_truststore
+from pygluu.containerlib.utils import cert_to_truststore
+from pygluu.containerlib.utils import get_server_certificate
 
 manager = get_manager()
-
-
-def render_salt():
-    encode_salt = manager.secret.get("encoded_salt")
-
-    with open("/opt/templates/salt.tmpl") as fr:
-        txt = fr.read()
-        with open("/etc/gluu/conf/salt", "w") as fw:
-            rendered_txt = txt % {"encode_salt": encode_salt}
-            fw.write(rendered_txt)
-
-
-def render_ldap_properties():
-    with open("/opt/templates/ox-ldap.properties.tmpl") as fr:
-        txt = fr.read()
-
-        with open("/etc/gluu/conf/ox-ldap.properties", "w") as fw:
-            rendered_txt = txt % {
-                "ldap_binddn": manager.config.get("ldap_binddn"),
-                "encoded_ox_ldap_pw": manager.secret.get("encoded_ox_ldap_pw"),
-                "inumAppliance": manager.config.get("inumAppliance"),
-                "ldap_url": GLUU_LDAP_URL,
-                "ldapTrustStoreFn": manager.config.get("ldapTrustStoreFn"),
-                "encoded_ldapTrustStorePass": manager.secret.get("encoded_ldapTrustStorePass"),
-            }
-            fw.write(rendered_txt)
-
-
-def render_ssl_cert():
-    ssl_cert = manager.secret.get("ssl_cert")
-    if ssl_cert:
-        with open("/etc/certs/gluu_https.crt", "w") as fd:
-            fd.write(ssl_cert)
-
-
-def render_ssl_key():
-    ssl_key = manager.secret.get("ssl_key")
-    if ssl_key:
-        with open("/etc/certs/gluu_https.key", "w") as fd:
-            fd.write(ssl_key)
-
-
-def decrypt_text(encrypted_text, key):
-    cipher = pyDes.triple_des(b"{}".format(key), pyDes.ECB,
-                              padmode=pyDes.PAD_PKCS5)
-    encrypted_text = b"{}".format(base64.b64decode(encrypted_text))
-    return cipher.decrypt(encrypted_text)
-
-
-def sync_ldap_pkcs12():
-    pkcs = decrypt_text(manager.secret.get("ldap_pkcs12_base64"),
-                        manager.secret.get("encoded_salt"))
-
-    with open(manager.config.get("ldapTrustStoreFn"), "wb") as fw:
-        fw.write(pkcs)
-
-
-def sync_ldap_cert():
-    cert = decrypt_text(manager.secret.get("ldap_ssl_cert"),
-                        manager.secret.get("encoded_salt"))
-
-    ldap_type = manager.config.get("ldap_type")
-    if ldap_type == "opendj":
-        cert_fn = "/etc/certs/opendj.crt"
-    else:
-        cert_fn = "/etc/certs/openldap.crt"
-
-    with open(cert_fn, "wb") as fw:
-        fw.write(cert)
-
-
-def render_idp_cert():
-    cert = decrypt_text(manager.secret.get("shibIDP_cert"), manager.secret.get("encoded_salt"))
-    with open("/etc/certs/shibIDP.crt", "w") as fd:
-        fd.write(cert)
-
-
-def render_idp_key():
-    cert = decrypt_text(manager.secret.get("shibIDP_key"), manager.secret.get("encoded_salt"))
-    with open("/etc/certs/shibIDP.key", "w") as fd:
-        fd.write(cert)
-
-
-def render_idp_signing_cert():
-    cert = manager.secret.get("idp3SigningCertificateText")
-    with open("/etc/certs/idp-signing.crt", "w") as fd:
-        fd.write(cert)
-
-
-def render_idp_encryption_cert():
-    cert = manager.secret.get("idp3EncryptionCertificateText")
-    with open("/etc/certs/idp-encryption.crt", "w") as fd:
-        fd.write(cert)
-
-
-def render_scim_rs_jks():
-    jks = decrypt_text(manager.secret.get("scim_rs_jks_base64"),
-                       manager.secret.get("encoded_salt"))
-    with open(manager.config.get("scim_rs_client_jks_fn"), "w") as f:
-        f.write(jks)
-
-
-def render_passport_rs_jks():
-    jks = decrypt_text(manager.secret.get("passport_rs_jks_base64"),
-                       manager.secret.get("encoded_salt"))
-    with open(manager.config.get("passport_rs_client_jks_fn"), "w") as f:
-        f.write(jks)
 
 
 def modify_jetty_xml():
@@ -160,18 +59,107 @@ def modify_webdefault_xml():
         f.write(updates)
 
 
+def patch_finishlogin_xhtml():
+    patch = """<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<f:view xmlns="http://www.w3.org/1999/xhtml" xmlns:f="http://xmlns.jcp.org/jsf/core" contentType="text/html"
+        locale="#{language.localeCode}"
+        xmlns:gluufn="http://www.gluu.org/jsf/functions">
+    <f:metadata>
+        <f:viewAction action="#{authenticator.authenticate}" if="#{(gluufn:trim(identity.oauthData.userUid) ne null) and (gluufn:trim(identity.oauthData.userUid) ne '')}" onPostback="false"/>
+    </f:metadata>
+</f:view>"""
+
+    finishlogin_xhtml = "/opt/gluu/jetty/identity/webapps/identity/finishlogin.xhtml"
+    with open(finishlogin_xhtml, "w") as f:
+        f.write(patch)
+
+
 if __name__ == "__main__":
-    render_salt()
-    render_ldap_properties()
-    render_ssl_cert()
-    render_ssl_key()
-    render_idp_cert()
-    render_idp_key()
-    render_idp_signing_cert()
-    render_idp_encryption_cert()
-    render_scim_rs_jks()
-    render_passport_rs_jks()
-    sync_ldap_pkcs12()
-    sync_ldap_cert()
+    persistence_type = os.environ.get("GLUU_PERSISTENCE_TYPE", "ldap")
+
+    render_salt(manager, "/app/templates/salt.tmpl", "/etc/gluu/conf/salt")
+    render_gluu_properties("/app/templates/gluu.properties.tmpl", "/etc/gluu/conf/gluu.properties")
+
+    if persistence_type in ("ldap", "hybrid"):
+        render_ldap_properties(
+            manager,
+            "/app/templates/gluu-ldap.properties.tmpl",
+            "/etc/gluu/conf/gluu-ldap.properties",
+        )
+        manager.secret.to_file(
+            "ldap_ssl_cert",
+            "/etc/certs/opendj.crt",
+            decode=True,
+        )
+        sync_ldap_truststore(manager)
+
+    if persistence_type in ("couchbase", "hybrid"):
+        render_couchbase_properties(
+            manager,
+            "/app/templates/gluu-couchbase.properties.tmpl",
+            "/etc/gluu/conf/gluu-couchbase.properties",
+        )
+        sync_couchbase_cert(manager)
+        sync_couchbase_truststore(manager)
+
+    if persistence_type == "hybrid":
+        render_hybrid_properties("/etc/gluu/conf/gluu-hybrid.properties")
+
+    if not os.path.isfile("/etc/certs/gluu_https.crt"):
+        get_server_certificate(manager.config.get("hostname"), 443, "/etc/certs/gluu_https.crt")
+
+    cert_to_truststore(
+        "gluu_https",
+        "/etc/certs/gluu_https.crt",
+        "/usr/lib/jvm/default-jvm/jre/lib/security/cacerts",
+        "changeit",
+    )
+
+    manager.secret.to_file("shibIDP_cert", "/etc/certs/shibIDP.crt", decode=True)
+    manager.secret.to_file("shibIDP_key", "/etc/certs/shibIDP.key", decode=True)
+    manager.secret.to_file("idp3SigningCertificateText", "/etc/certs/idp-signing.crt")
+    manager.secret.to_file("idp3EncryptionCertificateText", "/etc/certs/idp-encryption.crt")
+    manager.secret.to_file(
+        "scim_rs_jks_base64",
+        manager.config.get("scim_rs_client_jks_fn"),
+        decode=True,
+        binary_mode=True,
+    )
+    manager.secret.to_file(
+        "passport_rs_jks_base64",
+        manager.config.get("passport_rs_client_jks_fn"),
+        decode=True,
+        binary_mode=True,
+    )
+
+    manager.secret.to_file(
+        "api_rs_jks_base64",
+        manager.config.get("api_rs_client_jks_fn"),
+        decode=True,
+        binary_mode=True,
+    )
+    with open(manager.config.get("api_rs_client_jwks_fn"), "w") as f:
+        f.write(base64.b64decode(manager.secret.get("api_rs_client_base64_jwks")))
+
+    manager.secret.to_file(
+        "api_rp_jks_base64",
+        manager.config.get("api_rp_client_jks_fn"),
+        decode=True,
+        binary_mode=True,
+    )
+    with open(manager.config.get("api_rp_client_jwks_fn"), "w") as f:
+        f.write(base64.b64decode(manager.secret.get("api_rp_client_base64_jwks")))
+
+    manager.secret.to_file("scim_rs_jks_base64", "/etc/certs/scim-rs.jks",
+                           decode=True, binary_mode=True)
+    with open(manager.config.get("scim_rs_client_jwks_fn"), "w") as f:
+        f.write(base64.b64decode(manager.secret.get("scim_rs_client_base64_jwks")))
+
+    manager.secret.to_file("scim_rp_jks_base64", "/etc/certs/scim-rp.jks",
+                           decode=True, binary_mode=True)
+    with open(manager.config.get("scim_rp_client_jwks_fn"), "w") as f:
+        f.write(base64.b64decode(manager.secret.get("scim_rp_client_base64_jwks")))
+
     modify_jetty_xml()
     modify_webdefault_xml()
+    # patch_finishlogin_xhtml()
