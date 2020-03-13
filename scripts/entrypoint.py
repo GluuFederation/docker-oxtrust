@@ -115,10 +115,18 @@ if __name__ == "__main__":
         "changeit",
     )
 
-    manager.secret.to_file("shibIDP_cert", "/etc/certs/shibIDP.crt", decode=True)
-    manager.secret.to_file("shibIDP_key", "/etc/certs/shibIDP.key", decode=True)
-    manager.secret.to_file("idp3SigningCertificateText", "/etc/certs/idp-signing.crt")
-    manager.secret.to_file("idp3EncryptionCertificateText", "/etc/certs/idp-encryption.crt")
+    if not os.path.isfile("/etc/certs/shibIDP.crt"):
+        manager.secret.to_file("shibIDP_cert", "/etc/certs/shibIDP.crt", decode=True)
+
+    if not os.path.isfile("/etc/certs/shibIDP.key"):
+        manager.secret.to_file("shibIDP_key", "/etc/certs/shibIDP.key", decode=True)
+
+    if not os.path.isfile("/etc/certs/idp-signing.crt"):
+        manager.secret.to_file("idp3SigningCertificateText", "/etc/certs/idp-signing.crt")
+
+    if not os.path.isfile("/etc/certs/idp-encryption.crt"):
+        manager.secret.to_file("idp3EncryptionCertificateText", "/etc/certs/idp-encryption.crt")
+
     manager.secret.to_file(
         "scim_rs_jks_base64",
         manager.config.get("scim_rs_client_jks_fn"),
