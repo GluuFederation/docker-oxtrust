@@ -65,7 +65,7 @@ RUN wget -q https://ox.gluu.org/maven/org/gluu/oxtrust-api-server/${GLUU_VERSION
 # Facter
 # ======
 
-RUN gem install facter --no-ri --no-rdoc
+RUN gem install facter -v=2.5.7 --no-ri --no-rdoc
 
 # ====
 # Tini
