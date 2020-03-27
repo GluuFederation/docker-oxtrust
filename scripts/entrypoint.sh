@@ -37,7 +37,7 @@ run_entrypoint() {
 
     if [ ! -f /deploy/touched ]; then
         python /app/scripts/entrypoint.py
-        pull_shared_shib_files
+        # pull_shared_shib_files
         ln -s /etc/certs/gluu_https.crt /etc/certs/httpd.crt
         touch /deploy/touched
     fi
@@ -55,8 +55,8 @@ else
     run_entrypoint
 fi
 
-# monitor filesystem changes on Shibboleth-related files
-sh /app/scripts/shibwatcher.sh &
+# # monitor filesystem changes on Shibboleth-related files
+# sh /app/scripts/shibwatcher.sh &
 
 # enable passport menu (a workaround for https://git.io/fjQCu)
 mkdir -p /opt/gluu/node/passport/server
@@ -66,6 +66,8 @@ mkdir -p /opt/gluu/radius && echo 'dummy file to enable Radius menu' > /opt/gluu
 
 # # enable shib3 menu (a workaround for https://git.io/fjQCW)
 # mkdir -p /opt/gluu/jetty/idp/webapps && echo 'dummy file to enable Shibboleth3 menu' > /opt/gluu/jetty/idp/webapps/idp.war
+
+python /app/scripts/shibwatcher.py &
 
 cd /opt/gluu/jetty/identity
 mkdir -p /opt/jetty/temp
