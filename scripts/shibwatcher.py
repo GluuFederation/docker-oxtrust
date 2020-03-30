@@ -152,9 +152,11 @@ class KubernetesClient(BaseClient):
             while resp.is_open():
                 resp.update(timeout=1)
                 if resp.peek_stdout():
-                    logger.info("STDOUT: %s" % resp.read_stdout())
+                    # logger.info("STDOUT: %s" % resp.read_stdout())
+                    pass
                 if resp.peek_stderr():
-                    logger.info("STDERR: %s" % resp.read_stderr())
+                    # logger.info("STDERR: %s" % resp.read_stderr())
+                    pass
                 if commands:
                     c = commands.pop(0)
                     resp.write_stdin(c)
@@ -186,11 +188,14 @@ class ShibWatcher(object):
     def sync_to_oxshibboleth(self, filepaths):
         """Sync modified files to all oxShibboleth.
         """
-        containers = self.client.get_oxshibboleth_containers()
-        for container in containers:
+        for container in self.client.get_oxshibboleth_containers():
             for filepath in filepaths:
                 logger.info("Copying {} to {}:{}".format(filepath, self.client.get_container_name(container), filepath))
                 self.client.copy_to_container(container, filepath)
+        else:
+            logger.warn("Unable to find any oxShibboleth container; make sure "
+                        "to deploy oxShibboleth and set APP_NAME=oxshibboleth "
+                        "label on container level")
 
     def get_filepaths(self):
         filepaths = []
@@ -228,27 +233,30 @@ class ShibWatcher(object):
         return True
 
     def maybe_sync(self):
-        shib_nums = len(self.client.get_oxshibboleth_containers())
-        # logger.info("Saved shib nums: " + str(self.oxshibboleth_nums))
-        # logger.info("Current shib nums: " + str(shib_nums))
+        try:
+            shib_nums = len(self.client.get_oxshibboleth_containers())
+            # logger.info("Saved shib nums: " + str(self.oxshibboleth_nums))
+            # logger.info("Current shib nums: " + str(shib_nums))
 
-        filepaths = self.get_filepaths()
+            filepaths = self.get_filepaths()
 
-        if self.sync_by_digest(filepaths):
-            # keep the number of registered oxshibboleth for later check
+            if self.sync_by_digest(filepaths):
+                # keep the number of registered oxshibboleth for later check
+                self.oxshibboleth_nums = shib_nums
+                return
+
+            # check again in case we have new oxshibboleth container
+            shib_nums = len(self.client.get_oxshibboleth_containers())
+
+            # probably scaled up
+            if shib_nums > self.oxshibboleth_nums:
+                logger.info("Sync files to oxShibboleth ...")
+                self.sync_to_oxshibboleth(filepaths)
+
+            # keep the number of registered oxshibboleth
             self.oxshibboleth_nums = shib_nums
-            return
-
-        # check again in case we have new oxshibboleth container
-        shib_nums = len(self.client.get_oxshibboleth_containers())
-
-        # probably scaled up
-        if shib_nums > self.oxshibboleth_nums:
-            logger.info("Sync files to oxShibboleth ...")
-            self.sync_to_oxshibboleth(filepaths)
-
-        # keep the number of registered oxshibboleth
-        self.oxshibboleth_nums = shib_nums
+        except Exception as exc:
+            logger.warn("Got unhandled exception; reason={}".format(exc))
 
 
 def get_sync_interval():
