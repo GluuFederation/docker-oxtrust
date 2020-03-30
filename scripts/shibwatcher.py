@@ -5,19 +5,13 @@ import sys
 import tarfile
 import time
 from hashlib import md5
+from tempfile import TemporaryFile
 
 import docker
 from kubernetes import client, config
-# from kubernetes.stream import stream
+from kubernetes.stream import stream
 
 from settings import LOGGING_CONFIG
-
-PATTERNS = (
-    "*.xml",
-    "*.config",
-    "*.xsd",
-    "*.dtd",
-)
 
 logging.config.dictConfig(LOGGING_CONFIG)
 logger = logging.getLogger("shibwatcher")
@@ -42,7 +36,7 @@ class BaseClient(object):
         """
         raise NotImplementedError
 
-    def copy_file(self, container, path):
+    def copy_to_container(self, container, path):
         """Gets container's IP address.
         Subclass __MUST__ implement this method.
         """
@@ -63,7 +57,7 @@ class DockerClient(BaseClient):
     def get_container_name(self, container):
         return container.name
 
-    def copy_file(self, container, path):
+    def copy_to_container(self, container, path):
         src = os.path.basename(path)
         dirname = os.path.dirname(path)
 
@@ -121,18 +115,52 @@ class KubernetesClient(BaseClient):
     def get_container_name(self, container):
         return container.metadata.name
 
-    def copy_file(self, container, path):
-        # stream(
-        #     self.client.connect_get_namespaced_pod_exec,
-        #     container.metadata.name,
-        #     container.metadata.namespace,
-        #     command=['/bin/sh', '-c', 'rm -rf /var/ox/identity/cr-snapshots'],
-        #     stderr=True,
-        #     stdin=True,
-        #     stdout=True,
-        #     tty=False,
-        # )
-        pass
+    def copy_to_container(self, container, path):
+        # make sure parent directory is created first
+        resp = stream(
+            self.client.connect_get_namespaced_pod_exec,
+            container.metadata.name,
+            container.metadata.namespace,
+            command=["/bin/sh", "-c", "mkdir -p {}".format(os.path.dirname(path))],
+            stderr=True,
+            stdin=True,
+            stdout=True,
+            tty=False,
+        )
+
+        # copy file implementation
+        resp = stream(
+            self.client.connect_get_namespaced_pod_exec,
+            container.metadata.name,
+            container.metadata.namespace,
+            command=["tar", "xvf", "-", "-C", "/"],
+            stderr=True,
+            stdin=True,
+            stdout=True,
+            tty=False,
+            _preload_content=False,
+        )
+
+        with TemporaryFile() as tar_buffer:
+            with tarfile.open(fileobj=tar_buffer, mode="w") as tar:
+                tar.add(path)
+
+            tar_buffer.seek(0)
+            commands = []
+            commands.append(tar_buffer.read())
+
+            while resp.is_open():
+                resp.update(timeout=1)
+                if resp.peek_stdout():
+                    logger.info("STDOUT: %s" % resp.read_stdout())
+                if resp.peek_stderr():
+                    logger.info("STDERR: %s" % resp.read_stderr())
+                if commands:
+                    c = commands.pop(0)
+                    resp.write_stdin(c)
+                else:
+                    break
+            resp.close()
 
 
 class ShibWatcher(object):
@@ -162,7 +190,7 @@ class ShibWatcher(object):
         for container in containers:
             for filepath in filepaths:
                 logger.info("Copying {} to {}:{}".format(filepath, self.client.get_container_name(container), filepath))
-                self.client.copy_file(container, filepath)
+                self.client.copy_to_container(container, filepath)
 
     def get_filepaths(self):
         filepaths = []
