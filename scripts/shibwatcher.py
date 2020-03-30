@@ -188,14 +188,18 @@ class ShibWatcher(object):
     def sync_to_oxshibboleth(self, filepaths):
         """Sync modified files to all oxShibboleth.
         """
-        for container in self.client.get_oxshibboleth_containers():
-            for filepath in filepaths:
-                logger.info("Copying {} to {}:{}".format(filepath, self.client.get_container_name(container), filepath))
-                self.client.copy_to_container(container, filepath)
-        else:
+        containers = self.client.get_oxshibboleth_containers()
+
+        if not containers:
             logger.warn("Unable to find any oxShibboleth container; make sure "
                         "to deploy oxShibboleth and set APP_NAME=oxshibboleth "
                         "label on container level")
+            return
+
+        for container in containers:
+            for filepath in filepaths:
+                logger.info("Copying {} to {}:{}".format(filepath, self.client.get_container_name(container), filepath))
+                self.client.copy_to_container(container, filepath)
 
     def get_filepaths(self):
         filepaths = []
