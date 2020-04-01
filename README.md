@@ -60,3 +60,4 @@ The following environment variables are supported by the container:
 - `GLUU_COUCHBASE_SCAN_CONSISTENCY`: Default scan consistency; one of `not_bounded`, `request_plus`, or `statement_plus` (default to `not_bounded`).
 - `GLUU_SYNC_SHIB_MANIFESTS`: Whether to sync Shibboleth manifest files to oxShibboleth containers (default to `false`).
 - `GLUU_SHIBWATCHER_INTERVAL`: Interval between Shibboleth files synchronization (default to `10`).
+- `GLUU_CONTAINER_METADATA`: The name of scheduler to pull container metadata (one of `docker` or `kubernetes`; default to `docker`).
