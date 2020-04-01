@@ -58,7 +58,5 @@ The following environment variables are supported by the container:
 - `GLUU_COUCHBASE_CONN_TIMEOUT`: Connect timeout used when a bucket is opened (default to `10000` milliseconds).
 - `GLUU_COUCHBASE_CONN_MAX_WAIT`: Maximum time to wait before retrying connection (default to `20000` milliseconds).
 - `GLUU_COUCHBASE_SCAN_CONSISTENCY`: Default scan consistency; one of `not_bounded`, `request_plus`, or `statement_plus` (default to `not_bounded`).
-
-## Shared Directories
-
-See [shared directories on oxShibboleth](https://github.com/GluuFederation/docker-oxshibboleth/tree/4.1#shared-directories) for reference.
+- `GLUU_SYNC_SHIB_MANIFESTS`: Whether to sync Shibboleth manifest files to oxShibboleth containers (default to `false`).
+- `GLUU_SHIBWATCHER_INTERVAL`: Interval between Shibboleth files synchronization (default to `10`).

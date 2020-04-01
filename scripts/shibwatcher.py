@@ -11,6 +11,8 @@ import docker
 from kubernetes import client, config
 from kubernetes.stream import stream
 
+from pygluu.containerlib.utils import as_boolean
+
 from settings import LOGGING_CONFIG
 
 logging.config.dictConfig(LOGGING_CONFIG)
@@ -275,9 +277,15 @@ def get_sync_interval():
     return sync_interval
 
 
-if __name__ == "__main__":
+def main():
+    enable_sync = as_boolean(
+        os.environ.get("GLUU_SYNC_SHIB_MANIFESTS", False)
+    )
+    if not enable_sync:
+        logger.warn("Sync Shibboleth files are disabled ... exiting")
+        return
+
     try:
-        # time.sleep(30)
         sync_interval = get_sync_interval()
         watcher = ShibWatcher()
 
@@ -285,4 +293,8 @@ if __name__ == "__main__":
             watcher.maybe_sync()
             time.sleep(sync_interval)
     except KeyboardInterrupt:
-        logger.warn("Cancelled by user ... exiting")
+        logger.warn("Canceled by user ... exiting")
+
+
+if __name__ == "__main__":
+    main()
