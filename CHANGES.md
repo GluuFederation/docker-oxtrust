@@ -2,6 +2,12 @@
 
 Here you can see an overview of changes between each release.
 
+## Version 4.0.1_08
+
+Released on April 2nd, 2020.
+
+* Added new `shibwatcher` script to monitor changes in Shibboleth-related files.
+
 ## Version 4.0.1_07
 
 Released on March 5th, 2020.
