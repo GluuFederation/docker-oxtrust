@@ -157,7 +157,10 @@ ENV GLUU_SHIB_SOURCE_DIR=/opt/shibboleth-idp \
     GLUU_OXAUTH_BACKEND=localhost:8081 \
     GLUU_WAIT_MAX_TIME=300 \
     GLUU_WAIT_SLEEP_DURATION=10 \
-    PYTHON_HOME=/opt/jython
+    PYTHON_HOME=/opt/jython \
+    GLUU_SYNC_SHIB_MANIFESTS=false \
+    GLUU_SHIBWATCHER_INTERVAL=10 \
+    GLUU_CONTAINER_METADATA=docker
 
 # ==========
 # misc stuff
@@ -220,4 +223,4 @@ RUN chmod +x /app/scripts/entrypoint.sh
 # USER 1000
 
 ENTRYPOINT ["tini", "-g", "--"]
-CMD ["/app/scripts/entrypoint.sh"]
+CMD ["sh", "/app/scripts/entrypoint.sh"]
