@@ -4,16 +4,25 @@ import os
 import sys
 import tarfile
 import time
-from hashlib import md5
 from tempfile import TemporaryFile
 
+import click
 import docker
 from kubernetes import client, config
 from kubernetes.stream import stream
+from watchdog.observers import Observer
+from watchdog.events import PatternMatchingEventHandler
 
 from pygluu.containerlib.utils import as_boolean
 
 from settings import LOGGING_CONFIG
+
+PATTERNS = (
+    "*.xml",
+    "*.config",
+    "*.xsd",
+    "*.dtd",
+)
 
 logging.config.dictConfig(LOGGING_CONFIG)
 logger = logging.getLogger("shibwatcher")
@@ -81,6 +90,9 @@ class DockerClient(BaseClient):
             os.unlink(src + ".tar")
         except OSError:
             pass
+
+    def delete_from_container(self, container, path):
+        container.exec_run("rm -f {}".format(path))
 
 
 class KubernetesClient(BaseClient):
@@ -166,11 +178,20 @@ class KubernetesClient(BaseClient):
                     break
             resp.close()
 
+    def delete_from_container(self, container, path):
+        stream(
+            self.client.connect_get_namespaced_pod_exec,
+            container.metadata.name,
+            container.metadata.namespace,
+            command=["/bin/sh", "-c", "rm -f {}".format(path)],
+            stderr=True,
+            stdin=True,
+            stdout=True,
+            tty=False,
+        )
 
-class ShibWatcher(object):
-    filepath_mods = {}
-    oxshibboleth_nums = 0
 
+class ClientMixin(object):
     def __init__(self):
         metadata = os.environ.get("GLUU_CONTAINER_METADATA", "docker")
 
@@ -179,13 +200,18 @@ class ShibWatcher(object):
         else:
             self.client = DockerClient()
 
+
+class ContainerHandler(ClientMixin):
+    filepath_mods = {}
+    oxshibboleth_nums = 0
+
     @property
     def rootdir(self):
         return "/opt/shibboleth-idp"
 
     @property
     def patterns(self):
-        return [".xml", ".config", ".xsd", ".dtd"]
+        return [os.path.splitext(pattern)[-1] for pattern in PATTERNS]
 
     def sync_to_oxshibboleth(self, filepaths):
         """Sync modified files to all oxShibboleth.
@@ -215,54 +241,115 @@ class ShibWatcher(object):
                 filepaths.append(filepath)
         return filepaths
 
-    def sync_by_digest(self, filepaths):
-        _filepaths = []
-
-        for filepath in filepaths:
-            with open(filepath) as f:
-                digest = md5(f.read()).hexdigest()
-
-            # skip if nothing has been tampered
-            if filepath in self.filepath_mods and digest == self.filepath_mods[filepath]:
-                continue
-
-            # _filepath_mods[filepath] = digest
-            _filepaths.append(filepath)
-            self.filepath_mods[filepath] = digest
-
-        # nothing changed
-        if not _filepaths:
-            return False
-
-        logger.info("Sync modified files to oxShibboleth ...")
-        self.sync_to_oxshibboleth(_filepaths)
-        return True
-
     def maybe_sync(self):
-        try:
-            shib_nums = len(self.client.get_oxshibboleth_containers())
-            # logger.info("Saved shib nums: " + str(self.oxshibboleth_nums))
-            # logger.info("Current shib nums: " + str(shib_nums))
+        shib_nums = len(self.client.get_oxshibboleth_containers())
 
+        # probably scaled up
+        if shib_nums > self.oxshibboleth_nums:
+            logger.info("Sync files to oxShibboleth ...")
             filepaths = self.get_filepaths()
+            self.sync_to_oxshibboleth(filepaths)
 
-            if self.sync_by_digest(filepaths):
-                # keep the number of registered oxshibboleth for later check
-                self.oxshibboleth_nums = shib_nums
-                return
+        # keep the number of registered oxshibboleth
+        self.oxshibboleth_nums = shib_nums
 
-            # check again in case we have new oxshibboleth container
-            shib_nums = len(self.client.get_oxshibboleth_containers())
 
-            # probably scaled up
-            if shib_nums > self.oxshibboleth_nums:
-                logger.info("Sync files to oxShibboleth ...")
-                self.sync_to_oxshibboleth(filepaths)
+class FilesystemHandler(PatternMatchingEventHandler, ClientMixin):
+    def on_moved(self, event):
+        # callback when files are moved from /opt/shibboleth-idp/temp_metadata
+        # to /opt/shibboleth-idp/metadata
+        self.copy_file(event.src_path, event.dest_path)
 
-            # keep the number of registered oxshibboleth
-            self.oxshibboleth_nums = shib_nums
-        except Exception as exc:
-            logger.warn("Got unhandled exception; reason={}".format(exc))
+    def on_modified(self, event):
+        # destination equals source path
+        self.copy_file(event.src_path, event.src_path)
+
+    def on_deleted(self, event):
+        # callback when files are deleted from /opt/shibboleth-idp/temp_metadata
+        self.delete_file(event.src_path)
+
+    def copy_file(self, src, dest):
+        containers = self.client.get_oxshibboleth_containers()
+
+        if not containers:
+            logger.warn("Unable to find any oxShibboleth container; make sure "
+                        "to deploy oxShibboleth and set APP_NAME=oxshibboleth "
+                        "label on container level")
+            return
+
+        for container in containers:
+            logger.info("Copying {} to {}:{}".format(src, self.client.get_container_name(container), dest))
+            self.client.copy_to_container(container, dest)
+
+    def delete_file(self, src):
+        containers = self.client.get_oxshibboleth_containers()
+
+        if not containers:
+            logger.warn("Unable to find any oxShibboleth container; make sure "
+                        "to deploy oxShibboleth and set APP_NAME=oxshibboleth "
+                        "label on container level")
+            return
+
+        for container in containers:
+            logger.info("Deleting {}:{}".format(self.client.get_container_name(container), src))
+            self.client.delete_from_container(container, src)
+
+
+@click.group()
+def cli():
+    pass
+
+
+@cli.command("watch-files")
+def watch_files():
+    """Watch events on Shibboleth-related files.
+    """
+    enable_sync = as_boolean(
+        os.environ.get("GLUU_SYNC_SHIB_MANIFESTS", False)
+    )
+    if not enable_sync:
+        logger.warn("Sync Shibboleth files are disabled ... exiting")
+        raise click.Abort()
+
+    event_handler = FilesystemHandler(patterns=PATTERNS)
+    observer = Observer()
+    observer.schedule(event_handler, "/opt/shibboleth-idp", recursive=True)
+    observer.start()
+
+    # The above starts an observing thread, so the main thread can just wait
+    try:
+        while True:
+            time.sleep(5)
+    except KeyboardInterrupt:
+        observer.stop()
+        logger.warn("Canceled by user ... exiting")
+    except Exception as exc:
+        logger.warn("Got unhandled exception; reason={}".format(exc))
+    observer.join()
+
+
+@cli.command("watch-containers")
+def watch_containers():
+    """Watch events on Shibboleth containers in the cluster.
+    """
+    enable_sync = as_boolean(
+        os.environ.get("GLUU_SYNC_SHIB_MANIFESTS", False)
+    )
+    if not enable_sync:
+        logger.warn("Sync Shibboleth files are disabled ... exiting")
+        raise click.Abort()
+
+    try:
+        sync_interval = get_sync_interval()
+        watcher = ContainerHandler()
+
+        while True:
+            watcher.maybe_sync()
+            time.sleep(sync_interval)
+    except KeyboardInterrupt:
+        logger.warn("Canceled by user ... exiting")
+    except Exception as exc:
+        logger.warn("Got unhandled exception; reason={}".format(exc))
 
 
 def get_sync_interval():
@@ -277,24 +364,5 @@ def get_sync_interval():
     return sync_interval
 
 
-def main():
-    enable_sync = as_boolean(
-        os.environ.get("GLUU_SYNC_SHIB_MANIFESTS", False)
-    )
-    if not enable_sync:
-        logger.warn("Sync Shibboleth files are disabled ... exiting")
-        return
-
-    try:
-        sync_interval = get_sync_interval()
-        watcher = ShibWatcher()
-
-        while True:
-            watcher.maybe_sync()
-            time.sleep(sync_interval)
-    except KeyboardInterrupt:
-        logger.warn("Canceled by user ... exiting")
-
-
 if __name__ == "__main__":
-    main()
+    cli()
