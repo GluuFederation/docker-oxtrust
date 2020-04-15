@@ -5,7 +5,9 @@ FROM openjdk:8-jre-alpine3.9
 # ===============
 
 RUN apk update \
-    && apk add --no-cache coreutils inotify-tools openssl py-pip ruby \
+    && apk add --no-cache coreutils openssl py3-pip ruby \
+    && ln -sf /usr/bin/python3 /usr/bin/python \
+    && ln -sf /usr/bin/pip3 /usr/bin/pip \
     && apk add --no-cache --virtual build-deps wget git
 
 # =====
@@ -31,10 +33,10 @@ EXPOSE 8080
 # Jython
 # ======
 
-ENV JYTHON_VERSION 2.7.2a1
-RUN wget -q https://ox.gluu.org/dist/jython/${JYTHON_VERSION}/jython-installer.jar -O /tmp/jython-installer.jar \
+ENV JYTHON_VERSION=2.7.2
+RUN wget -q https://ox.gluu.org/dist/jython/${JYTHON_VERSION}/jython-installer-${JYTHON_VERSION}.jar -O /tmp/jython-installer.jar \
     && mkdir -p /opt/jython \
-    && java -jar /tmp/jython-installer.jar -v -s -d /opt/jython -t standard -e ensurepip \
+    && java -jar /tmp/jython-installer.jar -v -s -d /opt/jython \
     && rm -f /tmp/jython-installer.jar
 
 # =======
@@ -166,8 +168,8 @@ ENV GLUU_MAX_RAM_PERCENTAGE=75.0 \
 LABEL name="oxTrust" \
     maintainer="Gluu Inc. <support@gluu.org>" \
     vendor="Gluu Federation" \
-    version="4.1.1" \
-    release="02" \
+    version="4.2.0" \
+    release="dev" \
     summary="Gluu oxTrust" \
     description="Gluu Server UI for managing authentication, authorization and users"
 

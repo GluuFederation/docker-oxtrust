@@ -62,7 +62,7 @@ class DockerClient(BaseClient):
         return self.client.containers.list(filters={'label': 'APP_NAME=oxshibboleth'})
 
     def get_container_ip(self, container):
-        for _, network in container.attrs["NetworkSettings"]["Networks"].iteritems():
+        for _, network in container.attrs["NetworkSettings"]["Networks"].items():
             return network["IPAddress"]
 
     def get_container_name(self, container):
@@ -103,12 +103,12 @@ class KubernetesClient(BaseClient):
             config.load_incluster_config()
             config_loaded = True
         except config.config_exception.ConfigException:
-            logger.warn("Unable to load in-cluster configuration; trying to load from Kube config file")
+            logger.warning("Unable to load in-cluster configuration; trying to load from Kube config file")
             try:
                 config.load_kube_config()
                 config_loaded = True
             except (IOError, config.config_exception.ConfigException) as exc:
-                logger.warn("Unable to load Kube config; reason={}".format(exc))
+                logger.warning("Unable to load Kube config; reason={}".format(exc))
 
         if not config_loaded:
             logger.error("Unable to load in-cluster or Kube config")
@@ -219,9 +219,9 @@ class ContainerHandler(ClientMixin):
         containers = self.client.get_oxshibboleth_containers()
 
         if not containers:
-            logger.warn("Unable to find any oxShibboleth container; make sure "
-                        "to deploy oxShibboleth and set APP_NAME=oxshibboleth "
-                        "label on container level")
+            logger.warning("Unable to find any oxShibboleth container; make sure "
+                           "to deploy oxShibboleth and set APP_NAME=oxshibboleth "
+                           "label on container level")
             return
 
         for container in containers:
@@ -272,9 +272,9 @@ class FilesystemHandler(PatternMatchingEventHandler, ClientMixin):
         containers = self.client.get_oxshibboleth_containers()
 
         if not containers:
-            logger.warn("Unable to find any oxShibboleth container; make sure "
-                        "to deploy oxShibboleth and set APP_NAME=oxshibboleth "
-                        "label on container level")
+            logger.warning("Unable to find any oxShibboleth container; make sure "
+                           "to deploy oxShibboleth and set APP_NAME=oxshibboleth "
+                           "label on container level")
             return
 
         for container in containers:
@@ -285,9 +285,9 @@ class FilesystemHandler(PatternMatchingEventHandler, ClientMixin):
         containers = self.client.get_oxshibboleth_containers()
 
         if not containers:
-            logger.warn("Unable to find any oxShibboleth container; make sure "
-                        "to deploy oxShibboleth and set APP_NAME=oxshibboleth "
-                        "label on container level")
+            logger.warning("Unable to find any oxShibboleth container; make sure "
+                           "to deploy oxShibboleth and set APP_NAME=oxshibboleth "
+                           "label on container level")
             return
 
         for container in containers:
@@ -308,7 +308,7 @@ def watch_files():
         os.environ.get("GLUU_SYNC_SHIB_MANIFESTS", False)
     )
     if not enable_sync:
-        logger.warn("Sync Shibboleth files are disabled ... exiting")
+        logger.warning("Sync Shibboleth files are disabled ... exiting")
         raise click.Abort()
 
     event_handler = FilesystemHandler(patterns=PATTERNS)
@@ -322,9 +322,9 @@ def watch_files():
             time.sleep(5)
     except KeyboardInterrupt:
         observer.stop()
-        logger.warn("Canceled by user ... exiting")
+        logger.warning("Canceled by user ... exiting")
     except Exception as exc:
-        logger.warn("Got unhandled exception; reason={}".format(exc))
+        logger.warning("Got unhandled exception; reason={}".format(exc))
     observer.join()
 
 
@@ -336,7 +336,7 @@ def watch_containers():
         os.environ.get("GLUU_SYNC_SHIB_MANIFESTS", False)
     )
     if not enable_sync:
-        logger.warn("Sync Shibboleth files are disabled ... exiting")
+        logger.warning("Sync Shibboleth files are disabled ... exiting")
         raise click.Abort()
 
     try:
@@ -347,9 +347,9 @@ def watch_containers():
             watcher.maybe_sync()
             time.sleep(sync_interval)
     except KeyboardInterrupt:
-        logger.warn("Canceled by user ... exiting")
+        logger.warning("Canceled by user ... exiting")
     except Exception as exc:
-        logger.warn("Got unhandled exception; reason={}".format(exc))
+        logger.warning("Got unhandled exception; reason={}".format(exc))
 
 
 def get_sync_interval():
