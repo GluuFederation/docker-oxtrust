@@ -31,10 +31,10 @@ EXPOSE 8080
 # Jython
 # ======
 
-ENV JYTHON_VERSION 2.7.2a1
-RUN wget -q https://ox.gluu.org/dist/jython/${JYTHON_VERSION}/jython-installer.jar -O /tmp/jython-installer.jar \
+ENV JYTHON_VERSION=2.7.2
+RUN wget -q https://ox.gluu.org/dist/jython/${JYTHON_VERSION}/jython-installer-${JYTHON_VERSION}.jar -O /tmp/jython-installer.jar \
     && mkdir -p /opt/jython \
-    && java -jar /tmp/jython-installer.jar -v -s -d /opt/jython -t standard -e ensurepip \
+    && java -jar /tmp/jython-installer.jar -v -s -d /opt/jython \
     && rm -f /tmp/jython-installer.jar
 
 # =======
