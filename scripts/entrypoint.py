@@ -1,4 +1,5 @@
 import base64
+import glob
 import os
 import re
 
@@ -59,19 +60,35 @@ def modify_webdefault_xml():
         f.write(updates)
 
 
-def patch_finishlogin_xhtml():
-    patch = """<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<f:view xmlns="http://www.w3.org/1999/xhtml" xmlns:f="http://xmlns.jcp.org/jsf/core" contentType="text/html"
-        locale="#{language.localeCode}"
-        xmlns:gluufn="http://www.gluu.org/jsf/functions">
-    <f:metadata>
-        <f:viewAction action="#{authenticator.authenticate}" if="#{(gluufn:trim(identity.oauthData.userUid) ne null) and (gluufn:trim(identity.oauthData.userUid) ne '')}" onPostback="false"/>
-    </f:metadata>
-</f:view>"""
+def modify_identity_xml():
+    fn = "/opt/gluu/jetty/identity/webapps/identity.xml"
 
-    finishlogin_xhtml = "/opt/gluu/jetty/identity/webapps/identity/finishlogin.xhtml"
-    with open(finishlogin_xhtml, "w") as f:
-        f.write(patch)
+    with open(fn) as f:
+        txt = f.read()
+
+    with open(fn, "w") as f:
+        ctx = {
+            "extra_classpath": ",".join([
+                j.replace("/opt/gluu/jetty/identity", ".")
+                for j in glob.iglob("/opt/gluu/jetty/identity/custom/libs/*.jar")
+            ])
+        }
+        f.write(txt % ctx)
+
+
+# def patch_finishlogin_xhtml():
+#     patch = """<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+# <f:view xmlns="http://www.w3.org/1999/xhtml" xmlns:f="http://xmlns.jcp.org/jsf/core" contentType="text/html"
+#         locale="#{language.localeCode}"
+#         xmlns:gluufn="http://www.gluu.org/jsf/functions">
+#     <f:metadata>
+#         <f:viewAction action="#{authenticator.authenticate}" if="#{(gluufn:trim(identity.oauthData.userUid) ne null) and (gluufn:trim(identity.oauthData.userUid) ne '')}" onPostback="false"/>
+#     </f:metadata>
+# </f:view>"""
+
+#     finishlogin_xhtml = "/opt/gluu/jetty/identity/webapps/identity/finishlogin.xhtml"
+#     with open(finishlogin_xhtml, "w") as f:
+#         f.write(patch)
 
 
 if __name__ == "__main__":
@@ -170,4 +187,5 @@ if __name__ == "__main__":
 
     modify_jetty_xml()
     modify_webdefault_xml()
+    modify_identity_xml()
     # patch_finishlogin_xhtml()
