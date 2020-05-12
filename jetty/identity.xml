@@ -6,5 +6,5 @@
   <Set name="war"><Property name="jetty.webapps" default="."/>/identity</Set>
   <Set name="extractWAR">false</Set>
 
-  <Set name="extraClasspath">./custom/libs/oxtrust-api-server.jar</Set>
+  <Set name="extraClasspath">%(extra_classpath)s</Set>
 </Configure>
