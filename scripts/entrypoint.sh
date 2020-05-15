@@ -45,16 +45,9 @@ run_jca_sync() {
 # ==========
 
 move_builtin_jars
-
-if [ -f /etc/redhat-release ]; then
-    source scl_source enable python27 && run_wait
-    source scl_source enable python3 && run_jca_sync
-    source scl_source enable python27 && run_entrypoint
-else
-    run_wait
-    run_jca_sync
-    run_entrypoint
-fi
+run_wait
+run_jca_sync
+run_entrypoint
 
 # enable passport menu (a workaround for https://git.io/fjQCu)
 mkdir -p /opt/gluu/node/passport/server

@@ -1,10 +1,9 @@
+import subprocess
+import shlex
 import logging.config
 import os
 import time
-
-from webdav3.client import Client
-from webdav3.exceptions import RemoteResourceNotFound
-from webdav3.exceptions import NoConnection
+from typing import Tuple
 
 from settings import LOGGING_CONFIG
 
@@ -15,20 +14,60 @@ logging.config.dictConfig(LOGGING_CONFIG)
 logger = logging.getLogger("webdav")
 
 
-def sync_from_webdav(url, username, password):
-    options = {
-        "webdav_hostname": url,
-        "webdav_login": username,
-        "webdav_password": password,
-        "webdav_root": ROOT_DIR,
-    }
-    client = Client(options)
+def exec_cmd(cmd: str) -> Tuple[bytes, bytes, int]:
+    args = shlex.split(cmd)
+    popen = subprocess.Popen(
+        args,
+        stdin=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
+    stdout, stderr = popen.communicate()
+    retcode = popen.returncode
+    return stdout.strip(), stderr.strip(), retcode
 
-    try:
-        logger.info(f"Sync files with remote directory {url}{ROOT_DIR}{SYNC_DIR}")
-        client.pull(SYNC_DIR, SYNC_DIR)
-    except (RemoteResourceNotFound, NoConnection) as exc:
-        logger.warning(f"Unable to sync files from remote directory {url}{ROOT_DIR}{SYNC_DIR}; reason={exc}")
+
+class RClone(object):
+    def __init__(self, url, username, password):
+        self.url = f"{url}/repository/default"
+        self.username = username
+        self.password = password
+
+    def configure(self):
+        conf_file = os.path.expanduser("~/.config/rclone/rclone.conf")
+        if os.path.isfile(conf_file):
+            return
+
+        cmd = f"rclone config create jackrabbit webdav vendor other pass {self.password} user admin url {self.url}"
+        _, err, code = exec_cmd(cmd)
+
+        if code != 0:
+            errors = [e for e in err.decode().splitlines()]
+            logger.warning(f"Unable to create webdav config; reason={errors}")
+
+    def copy_from(self, remote, local):
+        cmd = f"rclone copy jackrabbit:{remote} {local} --create-empty-src-dirs"
+        _, err, code = exec_cmd(cmd)
+
+        if code != 0:
+            errors = [e for e in err.decode().splitlines()]
+            logger.warning(f"Unable to sync files from remote directories; reason={errors}")
+
+    def copy_to(self, remote, local):
+        cmd = f"rclone copy {local} jackrabbit:{remote} --create-empty-src-dirs"
+        _, err, code = exec_cmd(cmd)
+
+        if code != 0:
+            errors = [e.decode() for e in err.splitlines()]
+            logger.warning(f"Unable to sync files to remote directories; reason={errors}")
+
+
+def sync_from_webdav(url, username, password):
+    rclone = RClone(url, username, password)
+    rclone.configure()
+
+    logger.info(f"Sync files with remote directory {url}{ROOT_DIR}{SYNC_DIR}")
+    rclone.copy_from(SYNC_DIR, SYNC_DIR)
 
 
 def get_sync_interval():
@@ -62,7 +101,7 @@ def main():
             sync_from_webdav(url, username, password)
             time.sleep(sync_interval)
     except KeyboardInterrupt:
-        logger.warn("Canceled by user; exiting ...")
+        logger.warning("Canceled by user; exiting ...")
 
 
 if __name__ == "__main__":

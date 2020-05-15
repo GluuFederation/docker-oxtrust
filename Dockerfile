@@ -1,4 +1,3 @@
-# FROM openjdk:8-jre-alpine3.9
 FROM adoptopenjdk/openjdk11:alpine-jre
 
 # ===============
@@ -6,8 +5,8 @@ FROM adoptopenjdk/openjdk11:alpine-jre
 # ===============
 
 RUN apk update \
-    && apk add --no-cache coreutils openssl py3-pip ruby libxml2-dev libxslt-dev tini \
-    && apk add --no-cache --virtual build-deps wget git build-base python3-dev \
+    && apk add --no-cache coreutils openssl py3-pip ruby tini \
+    && apk add --no-cache --virtual build-deps wget git \
     && ln -sf /usr/bin/python3 /usr/bin/python \
     && ln -sf /usr/bin/pip3 /usr/bin/pip
 
@@ -45,7 +44,7 @@ RUN wget -q https://ox.gluu.org/dist/jython/${JYTHON_VERSION}/jython-installer-$
 # =======
 
 ARG GLUU_VERSION=4.2.0-SNAPSHOT
-ARG GLUU_BUILD_DATE="2020-05-12 17:21"
+ARG GLUU_BUILD_DATE="2020-05-14 16:29"
 
 # Install oxTrust
 RUN wget -q https://ox.gluu.org/maven/org/gluu/oxtrust-server/${GLUU_VERSION}/oxtrust-server-${GLUU_VERSION}.war -O /tmp/oxtrust.war \
@@ -70,12 +69,15 @@ RUN wget -q https://ox.gluu.org/maven/org/gluu/oxtrust-api-server/${GLUU_VERSION
 
 RUN gem install facter -v=2.5.7 -N
 
-# # ====
-# # Tini
-# # ====
+# ======
+# rclone
+# ======
 
-# RUN wget -q https://github.com/krallin/tini/releases/download/v0.18.0/tini-static -O /usr/bin/tini \
-#     && chmod +x /usr/bin/tini
+ARG RCLONE_VERSION=v1.51.0
+RUN wget -q https://github.com/rclone/rclone/releases/download/${RCLONE_VERSION}/rclone-${RCLONE_VERSION}-linux-amd64.zip -O /tmp/rclone.zip \
+    && unzip -qq /tmp/rclone.zip -d /tmp \
+    && mv /tmp/rclone-${RCLONE_VERSION}-linux-amd64/rclone /usr/bin/ \
+    && rm -rf /tmp/rclone-${RCLONE_VERSION}-linux-amd64 /tmp/rclone.zip
 
 # ======
 # Python
@@ -83,8 +85,7 @@ RUN gem install facter -v=2.5.7 -N
 
 COPY requirements.txt /tmp/requirements.txt
 RUN pip install -U pip \
-    && pip install --no-cache-dir -r /tmp/requirements.txt \
-    && pip3 install --no-cache-dir webdavclient3
+    && pip install --no-cache-dir -r /tmp/requirements.txt
 
 # =======
 # Cleanup
@@ -207,26 +208,6 @@ RUN chmod +x /app/scripts/entrypoint.sh
 RUN mkdir -p /usr/lib/jvm/default-jvm /usr/java/latest \
     && ln -sf /opt/java/openjdk /usr/lib/jvm/default-jvm/jre \
     && ln -sf /usr/lib/jvm/default-jvm/jre /usr/java/latest/jre
-
-# # create jetty user
-# RUN useradd -ms /bin/sh --uid 1000 jetty \
-#     && usermod -a -G root jetty
-
-# # adjust ownership
-# RUN chown -R 1000:1000 /opt/gluu/jetty \
-#     && chown -R 1000:1000 /deploy \
-#     && chown -R 1000:1000 /opt/shibboleth-idp \
-#     && chown -R 1000:1000 /var/ox \
-#     && chmod -R g+w /usr/lib/jvm/default-jvm/jre/lib/security/cacerts \
-#     && chgrp -R 0 /opt/gluu/jetty && chmod -R g=u /opt/gluu/jetty \
-#     && chgrp -R 0 /opt/shibboleth-idp && chmod -R g=u /opt/shibboleth-idp \
-#     && chgrp -R 0 /etc/certs && chmod -R g=u /etc/certs \
-#     && chgrp -R 0 /etc/gluu && chmod -R g=u /etc/gluu \
-#     && chgrp -R 0 /deploy && chmod -R g=u /deploy \
-#     && chgrp -R 0 /var/ox && chmod -R g=u /var/ox
-
-# # run as non-root user
-# USER 1000
 
 ENTRYPOINT ["tini", "-e", "143", "-g", "--"]
 CMD ["sh", "/app/scripts/entrypoint.sh"]
