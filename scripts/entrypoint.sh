@@ -40,6 +40,10 @@ run_jca_sync() {
     python3 /app/scripts/jca_sync.py &
 }
 
+run_mod_context() {
+    python3 /app/scripts/mod_context.py
+}
+
 # ==========
 # ENTRYPOINT
 # ==========
@@ -50,10 +54,12 @@ if [ -f /etc/redhat-release ]; then
     source scl_source enable python27 && run_wait
     source scl_source enable python3 && run_jca_sync
     source scl_source enable python27 && run_entrypoint
+    source scl_source enable python27 && run_mod_context
 else
     run_wait
     run_jca_sync
     run_entrypoint
+    run_mod_context
 fi
 
 # enable passport menu (a workaround for https://git.io/fjQCu)
