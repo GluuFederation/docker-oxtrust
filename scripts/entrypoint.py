@@ -1,5 +1,4 @@
 import base64
-import glob
 import os
 import re
 
@@ -58,22 +57,6 @@ def modify_webdefault_xml():
 
     with open(fn, "w") as f:
         f.write(updates)
-
-
-def modify_identity_xml():
-    fn = "/opt/gluu/jetty/identity/webapps/identity.xml"
-
-    with open(fn) as f:
-        txt = f.read()
-
-    with open(fn, "w") as f:
-        ctx = {
-            "extra_classpath": ",".join([
-                j.replace("/opt/gluu/jetty/identity", ".")
-                for j in glob.iglob("/opt/gluu/jetty/identity/custom/libs/*.jar")
-            ])
-        }
-        f.write(txt % ctx)
 
 
 # def patch_finishlogin_xhtml():
@@ -195,5 +178,4 @@ if __name__ == "__main__":
 
     modify_jetty_xml()
     modify_webdefault_xml()
-    modify_identity_xml()
     # patch_finishlogin_xhtml()

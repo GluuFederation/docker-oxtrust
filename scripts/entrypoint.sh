@@ -40,6 +40,10 @@ run_jca_sync() {
     python3 /app/scripts/jca_sync.py &
 }
 
+run_mod_context() {
+    python3 /app/scripts/mod_context.py
+}
+
 # ==========
 # ENTRYPOINT
 # ==========
@@ -48,6 +52,7 @@ move_builtin_jars
 run_wait
 run_jca_sync
 run_entrypoint
+run_mod_context
 
 # enable passport menu (a workaround for https://git.io/fjQCu)
 mkdir -p /opt/gluu/node/passport/server
