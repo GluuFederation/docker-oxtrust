@@ -17,7 +17,7 @@ get_debug_opt() {
 }
 
 run_wait() {
-    python /app/scripts/wait.py
+    python3 /app/scripts/wait.py
 }
 
 move_builtin_jars() {
@@ -30,7 +30,7 @@ move_builtin_jars() {
 
 run_entrypoint() {
     if [ ! -f /deploy/touched ]; then
-        python /app/scripts/entrypoint.py
+        python3 /app/scripts/entrypoint.py
         ln -s /etc/certs/gluu_https.crt /etc/certs/httpd.crt
         touch /deploy/touched
     fi
@@ -75,3 +75,5 @@ exec java \
     -Djava.io.tmpdir=/opt/jetty/temp \
     $(get_debug_opt) \
     -jar /opt/jetty/start.jar
+
+    # -Djavax.xml.bind.context.factory=com.sun.xml.bind.v2.ContextFactory \
