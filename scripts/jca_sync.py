@@ -42,7 +42,7 @@ class RClone(object):
         _, err, code = exec_cmd(cmd)
 
         if code != 0:
-            errors = [e for e in err.decode().splitlines()]
+            errors = err.decode().splitlines()
             logger.warning(f"Unable to create webdav config; reason={errors}")
 
     def copy_from(self, remote, local):
@@ -50,16 +50,16 @@ class RClone(object):
         _, err, code = exec_cmd(cmd)
 
         if code != 0:
-            errors = [e for e in err.decode().splitlines()]
-            logger.warning(f"Unable to sync files from remote directories; reason={errors}")
+            errors = err.decode().splitlines()
+            logger.debug(f"Unable to sync files from remote directories; reason={errors}")
 
     def copy_to(self, remote, local):
         cmd = f"rclone copy {local} jackrabbit:{remote} --create-empty-src-dirs"
         _, err, code = exec_cmd(cmd)
 
         if code != 0:
-            errors = [e for e in err.decode().splitlines()]
-            logger.warning(f"Unable to sync files to remote directories; reason={errors}")
+            errors = err.decode().splitlines()
+            logger.debug(f"Unable to sync files to remote directories; reason={errors}")
 
 
 def sync_from_webdav(url, username, password):
