@@ -59,19 +59,19 @@ def modify_webdefault_xml():
         f.write(updates)
 
 
-def patch_finishlogin_xhtml():
-    patch = """<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<f:view xmlns="http://www.w3.org/1999/xhtml" xmlns:f="http://xmlns.jcp.org/jsf/core" contentType="text/html"
-        locale="#{language.localeCode}"
-        xmlns:gluufn="http://www.gluu.org/jsf/functions">
-    <f:metadata>
-        <f:viewAction action="#{authenticator.authenticate}" if="#{(gluufn:trim(identity.oauthData.userUid) ne null) and (gluufn:trim(identity.oauthData.userUid) ne '')}" onPostback="false"/>
-    </f:metadata>
-</f:view>"""
+# def patch_finishlogin_xhtml():
+#     patch = """<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+# <f:view xmlns="http://www.w3.org/1999/xhtml" xmlns:f="http://xmlns.jcp.org/jsf/core" contentType="text/html"
+#         locale="#{language.localeCode}"
+#         xmlns:gluufn="http://www.gluu.org/jsf/functions">
+#     <f:metadata>
+#         <f:viewAction action="#{authenticator.authenticate}" if="#{(gluufn:trim(identity.oauthData.userUid) ne null) and (gluufn:trim(identity.oauthData.userUid) ne '')}" onPostback="false"/>
+#     </f:metadata>
+# </f:view>"""
 
-    finishlogin_xhtml = "/opt/gluu/jetty/identity/webapps/identity/finishlogin.xhtml"
-    with open(finishlogin_xhtml, "w") as f:
-        f.write(patch)
+#     finishlogin_xhtml = "/opt/gluu/jetty/identity/webapps/identity/finishlogin.xhtml"
+#     with open(finishlogin_xhtml, "w") as f:
+#         f.write(patch)
 
 
 if __name__ == "__main__":
@@ -115,10 +115,18 @@ if __name__ == "__main__":
         "changeit",
     )
 
-    manager.secret.to_file("shibIDP_cert", "/etc/certs/shibIDP.crt", decode=True)
-    manager.secret.to_file("shibIDP_key", "/etc/certs/shibIDP.key", decode=True)
-    manager.secret.to_file("idp3SigningCertificateText", "/etc/certs/idp-signing.crt")
-    manager.secret.to_file("idp3EncryptionCertificateText", "/etc/certs/idp-encryption.crt")
+    if not os.path.isfile("/etc/certs/shibIDP.crt"):
+        manager.secret.to_file("shibIDP_cert", "/etc/certs/shibIDP.crt", decode=True)
+
+    if not os.path.isfile("/etc/certs/shibIDP.key"):
+        manager.secret.to_file("shibIDP_key", "/etc/certs/shibIDP.key", decode=True)
+
+    if not os.path.isfile("/etc/certs/idp-signing.crt"):
+        manager.secret.to_file("idp3SigningCertificateText", "/etc/certs/idp-signing.crt")
+
+    if not os.path.isfile("/etc/certs/idp-encryption.crt"):
+        manager.secret.to_file("idp3EncryptionCertificateText", "/etc/certs/idp-encryption.crt")
+
     manager.secret.to_file(
         "scim_rs_jks_base64",
         manager.config.get("scim_rs_client_jks_fn"),

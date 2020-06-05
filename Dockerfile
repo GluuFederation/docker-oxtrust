@@ -5,7 +5,7 @@ FROM openjdk:8-jre-alpine3.9
 # ===============
 
 RUN apk update \
-    && apk add --no-cache coreutils inotify-tools openssl py-pip ruby \
+    && apk add --no-cache coreutils openssl py-pip ruby py3-pip \
     && apk add --no-cache --virtual build-deps wget git
 
 # =====
@@ -31,18 +31,18 @@ EXPOSE 8080
 # Jython
 # ======
 
-ENV JYTHON_VERSION 2.7.2a1
-RUN wget -q https://ox.gluu.org/dist/jython/${JYTHON_VERSION}/jython-installer.jar -O /tmp/jython-installer.jar \
+ENV JYTHON_VERSION=2.7.2
+RUN wget -q https://ox.gluu.org/dist/jython/${JYTHON_VERSION}/jython-installer-${JYTHON_VERSION}.jar -O /tmp/jython-installer.jar \
     && mkdir -p /opt/jython \
-    && java -jar /tmp/jython-installer.jar -v -s -d /opt/jython -t standard -e ensurepip \
+    && java -jar /tmp/jython-installer.jar -v -s -d /opt/jython \
     && rm -f /tmp/jython-installer.jar
 
 # =======
 # oxTrust
 # =======
 
-ENV GLUU_VERSION=4.1.0.Final \
-    GLUU_BUILD_DATE="2020-02-28 11:48"
+ENV GLUU_VERSION=4.1.1.Final \
+    GLUU_BUILD_DATE="2020-05-26 18:00"
 
 # Install oxTrust
 RUN wget -q https://ox.gluu.org/maven/org/gluu/oxtrust-server/${GLUU_VERSION}/oxtrust-server-${GLUU_VERSION}.war -O /tmp/oxtrust.war \
@@ -65,7 +65,7 @@ RUN wget -q https://ox.gluu.org/maven/org/gluu/oxtrust-api-server/${GLUU_VERSION
 # Facter
 # ======
 
-RUN gem install facter --no-ri --no-rdoc
+RUN gem install facter -v=2.5.7 --no-ri --no-rdoc
 
 # ====
 # Tini
@@ -73,6 +73,16 @@ RUN gem install facter --no-ri --no-rdoc
 
 RUN wget -q https://github.com/krallin/tini/releases/download/v0.18.0/tini-static -O /usr/bin/tini \
     && chmod +x /usr/bin/tini
+
+# ======
+# rclone
+# ======
+
+ARG RCLONE_VERSION=v1.51.0
+RUN wget -q https://github.com/rclone/rclone/releases/download/${RCLONE_VERSION}/rclone-${RCLONE_VERSION}-linux-amd64.zip -O /tmp/rclone.zip \
+    && unzip -qq /tmp/rclone.zip -d /tmp \
+    && mv /tmp/rclone-${RCLONE_VERSION}-linux-amd64/rclone /usr/bin/ \
+    && rm -rf /tmp/rclone-${RCLONE_VERSION}-linux-amd64 /tmp/rclone.zip
 
 # ======
 # Python
@@ -151,13 +161,17 @@ ENV GLUU_PERSISTENCE_TYPE=ldap \
 # Generic ENV
 # ===========
 
-ENV GLUU_SHIB_SOURCE_DIR=/opt/shibboleth-idp \
-    GLUU_SHIB_TARGET_DIR=/opt/shared-shibboleth-idp \
-    GLUU_MAX_RAM_PERCENTAGE=75.0 \
+ENV GLUU_MAX_RAM_PERCENTAGE=75.0 \
     GLUU_OXAUTH_BACKEND=localhost:8081 \
     GLUU_WAIT_MAX_TIME=300 \
     GLUU_WAIT_SLEEP_DURATION=10 \
-    PYTHON_HOME=/opt/jython
+    PYTHON_HOME=/opt/jython \
+    GLUU_SYNC_SHIB_MANIFESTS=false \
+    GLUU_SHIBWATCHER_INTERVAL=10 \
+    GLUU_DOCUMENT_STORE_TYPE=LOCAL \
+    GLUU_JCA_URL=http://localhost:8080 \
+    GLUU_JCA_PASSWORD_FILE=/etc/gluu/conf/jca_password \
+    GLUU_JCA_USERNAME=admin
 
 # ==========
 # misc stuff
@@ -166,8 +180,8 @@ ENV GLUU_SHIB_SOURCE_DIR=/opt/shibboleth-idp \
 LABEL name="oxTrust" \
     maintainer="Gluu Inc. <support@gluu.org>" \
     vendor="Gluu Federation" \
-    version="4.1.0" \
-    release="01" \
+    version="4.1.1" \
+    release="04" \
     summary="Gluu oxTrust" \
     description="Gluu Server UI for managing authentication, authorization and users"
 
@@ -185,8 +199,7 @@ RUN mkdir -p /etc/certs \
     ${JETTY_BASE}/identity/conf/shibboleth3/idp \
     ${JETTY_BASE}/identity/conf/shibboleth3/sp \
     /app/scripts \
-    /app/templates \
-    /opt/shared-shibboleth-idp
+    /app/templates
 
 # Copy templates
 COPY jetty/identity_web_resources.xml ${JETTY_BASE}/identity/webapps/
@@ -204,12 +217,10 @@ RUN chmod +x /app/scripts/entrypoint.sh
 # # adjust ownership
 # RUN chown -R 1000:1000 /opt/gluu/jetty \
 #     && chown -R 1000:1000 /deploy \
-#     && chown -R 1000:1000 /opt/shared-shibboleth-idp \
 #     && chown -R 1000:1000 /opt/shibboleth-idp \
 #     && chown -R 1000:1000 /var/ox \
 #     && chmod -R g+w /usr/lib/jvm/default-jvm/jre/lib/security/cacerts \
 #     && chgrp -R 0 /opt/gluu/jetty && chmod -R g=u /opt/gluu/jetty \
-#     && chgrp -R 0 /opt/shared-shibboleth-idp && chmod -R g=u /opt/shared-shibboleth-idp \
 #     && chgrp -R 0 /opt/shibboleth-idp && chmod -R g=u /opt/shibboleth-idp \
 #     && chgrp -R 0 /etc/certs && chmod -R g=u /etc/certs \
 #     && chgrp -R 0 /etc/gluu && chmod -R g=u /etc/gluu \
@@ -219,5 +230,5 @@ RUN chmod +x /app/scripts/entrypoint.sh
 # # run as non-root user
 # USER 1000
 
-ENTRYPOINT ["tini", "-g", "--"]
-CMD ["/app/scripts/entrypoint.sh"]
+ENTRYPOINT ["tini", "-e", "143", "-g", "--"]
+CMD ["sh", "/app/scripts/entrypoint.sh"]

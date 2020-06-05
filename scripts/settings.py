@@ -22,6 +22,17 @@ LOGGING_CONFIG = {
             "level": "INFO",
             "propagate": False,
         },
+        "shibwatcher": {
+            "handlers": ["console"],
+            "level": "INFO",
+            "propagate": False,
+        },
+        "webdav": {
+            "handlers": ["console"],
+            "level": "INFO",
+            "propagate": False,
+        },
+
     },
     # "root": {
     #     "level": "INFO",

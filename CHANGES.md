@@ -2,11 +2,43 @@
 
 Here you can see an overview of changes between each release.
 
+## Version 4.1.1_04
+
+Released on June 5th, 2020.
+
+* Added RClone to interact with Jackrabbit via webdav protocol.
+
+## Version 4.1.1_03
+
+Released on April 29th, 2020.
+
+* Added Jackrabbit/JCR support.
+* Added Jython site-packages.
+
+## Version 4.1.1_02
+
+Released on April 2nd, 2020.
+
+* Added new `shibwatcher` script to monitor changes in Shibboleth-related files.
+* Upgraded `oxtrust-server`.
+
+## Version 4.1.1_01
+
+Released on March 24th, 2020.
+
+* Conformed to Gluu Server v4.1.1.
+
 ## Version 4.1.0_01
 
 Released on March 5th, 2020.
 
 * Conformed to Gluu Server v4.1.
+
+## Version 4.0.1_08
+
+Released on April 2nd, 2020.
+
+* Added new `shibwatcher` script to monitor changes in Shibboleth-related files.
 
 ## Version 4.0.1_07
 
