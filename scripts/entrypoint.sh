@@ -62,5 +62,3 @@ exec java \
     -Djava.io.tmpdir=/opt/jetty/temp \
     $(get_debug_opt) \
     -jar /opt/jetty/start.jar
-
-    # -Djavax.xml.bind.context.factory=com.sun.xml.bind.v2.ContextFactory \

@@ -9,7 +9,6 @@ from pygluu.containerlib.persistence import render_ldap_properties
 from pygluu.containerlib.persistence import render_couchbase_properties
 from pygluu.containerlib.persistence import render_hybrid_properties
 from pygluu.containerlib.persistence import sync_ldap_truststore
-# from pygluu.containerlib.persistence import sync_couchbase_cert
 from pygluu.containerlib.persistence import sync_couchbase_truststore
 from pygluu.containerlib.utils import cert_to_truststore
 from pygluu.containerlib.utils import get_server_certificate
@@ -59,21 +58,6 @@ def modify_webdefault_xml():
         f.write(updates)
 
 
-# def patch_finishlogin_xhtml():
-#     patch = """<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-# <f:view xmlns="http://www.w3.org/1999/xhtml" xmlns:f="http://xmlns.jcp.org/jsf/core" contentType="text/html"
-#         locale="#{language.localeCode}"
-#         xmlns:gluufn="http://www.gluu.org/jsf/functions">
-#     <f:metadata>
-#         <f:viewAction action="#{authenticator.authenticate}" if="#{(gluufn:trim(identity.oauthData.userUid) ne null) and (gluufn:trim(identity.oauthData.userUid) ne '')}" onPostback="false"/>
-#     </f:metadata>
-# </f:view>"""
-
-#     finishlogin_xhtml = "/opt/gluu/jetty/identity/webapps/identity/finishlogin.xhtml"
-#     with open(finishlogin_xhtml, "w") as f:
-#         f.write(patch)
-
-
 if __name__ == "__main__":
     persistence_type = os.environ.get("GLUU_PERSISTENCE_TYPE", "ldap")
 
@@ -99,7 +83,6 @@ if __name__ == "__main__":
             "/app/templates/gluu-couchbase.properties.tmpl",
             "/etc/gluu/conf/gluu-couchbase.properties",
         )
-        # sync_couchbase_cert(manager)
         sync_couchbase_truststore(manager)
 
     if persistence_type == "hybrid":
@@ -178,4 +161,3 @@ if __name__ == "__main__":
 
     modify_jetty_xml()
     modify_webdefault_xml()
-    # patch_finishlogin_xhtml()
