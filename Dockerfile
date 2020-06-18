@@ -17,7 +17,7 @@ RUN apk update \
 # Jetty
 # =====
 
-ARG JETTY_VERSION=9.4.24.v20191120
+ARG JETTY_VERSION=9.4.26.v20200117
 ARG JETTY_HOME=/opt/jetty
 ARG JETTY_BASE=/opt/gluu/jetty
 ARG JETTY_USER_HOME_LIB=/home/jetty/lib
