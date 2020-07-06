@@ -10,7 +10,7 @@ RUN mkdir -p /usr/lib/jvm/default-jvm /usr/java/latest \
 # ===============
 
 RUN apk update \
-    && apk add --no-cache coreutils openssl py3-pip ruby tini curl \
+    && apk add --no-cache coreutils openssl py3-pip tini curl \
     && apk add --no-cache --virtual build-deps wget git
 
 # =====
@@ -47,7 +47,7 @@ RUN wget -q https://ox.gluu.org/dist/jython/${JYTHON_VERSION}/jython-installer-$
 # =======
 
 ARG GLUU_VERSION=4.2.0-SNAPSHOT
-ARG GLUU_BUILD_DATE="2020-07-03 19:08"
+ARG GLUU_BUILD_DATE="2020-07-06 14:53"
 
 # Install oxTrust
 RUN wget -q https://ox.gluu.org/maven/org/gluu/oxtrust-server/${GLUU_VERSION}/oxtrust-server-${GLUU_VERSION}.war -O /tmp/oxtrust.war \
@@ -67,8 +67,9 @@ RUN wget -q https://ox.gluu.org/maven/org/gluu/oxtrust-api-server/${GLUU_VERSION
 # Facter
 # ======
 
-RUN apk add --update --no-cache ruby-json \
-    && gem install facter -v=2.5.7 -N
+ARG PYFACTER_VERSION=dd1c1bfa852b5d03c046e67ad3cba370a0da3944
+RUN wget -q https://github.com/GluuFederation/gluu-snap/raw/${PYFACTER_VERSION}/facter/facter -O /usr/bin/facter \
+    && chmod +x /usr/bin/facter
 
 # ======
 # rclone
