@@ -47,7 +47,7 @@ RUN wget -q https://ox.gluu.org/dist/jython/${JYTHON_VERSION}/jython-installer-$
 # =======
 
 ARG GLUU_VERSION=4.2.0-SNAPSHOT
-ARG GLUU_BUILD_DATE="2020-07-08 12:02"
+ARG GLUU_BUILD_DATE="2020-07-10 23:15"
 
 # Install oxTrust
 RUN wget -q https://ox.gluu.org/maven/org/gluu/oxtrust-server/${GLUU_VERSION}/oxtrust-server-${GLUU_VERSION}.war -O /tmp/oxtrust.war \
@@ -206,6 +206,11 @@ COPY conf/oxTrustLogRotationConfiguration.xml /etc/gluu/conf/
 COPY conf/*.tmpl /app/templates/
 COPY scripts /app/scripts
 RUN chmod +x /app/scripts/entrypoint.sh
+
+# # JAXB
+# RUN wget -q https://repo1.maven.org/maven2/javax/xml/bind/jaxb-api/2.3.1/jaxb-api-2.3.1.jar -O ${JETTY_BASE}/identity/webapps/identity/WEB-INF/lib/jaxb-api-2.3.1.jar \
+#     && wget -q https://repo1.maven.org/maven2/org/glassfish/jaxb/jaxb-runtime/2.4.0-b180830.0438/jaxb-runtime-2.4.0-b180830.0438.jar -O ${JETTY_BASE}/identity/webapps/identity/WEB-INF/lib/jaxb-runtime-2.4.0-b180830.0438.jar \
+#     && rm -f ${JETTY_BASE}/identity/webapps/identity/WEB-INF/lib/jaxb-runtime-2.3.3-b02.jar
 
 ENTRYPOINT ["tini", "-e", "143", "-g", "--"]
 CMD ["sh", "/app/scripts/entrypoint.sh"]
