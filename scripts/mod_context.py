@@ -1,4 +1,4 @@
-# import glob
+import glob
 
 
 def modify_identity_xml():
@@ -9,12 +9,10 @@ def modify_identity_xml():
 
     with open(fn, "w") as f:
         ctx = {
-            # "extra_classpath": ",".join([
-            #     j.replace("/opt/gluu/jetty/identity", ".")
-            #     for j in glob.iglob("/opt/gluu/jetty/identity/custom/libs/*.jar")
-            # ])
-            # oxtrust-api-server 4.2 is broken
-            "extra_classpath": "",
+            "extra_classpath": ",".join([
+                j.replace("/opt/gluu/jetty/identity", ".")
+                for j in glob.iglob("/opt/gluu/jetty/identity/custom/libs/*.jar")
+            ])
         }
         f.write(txt % ctx)
 

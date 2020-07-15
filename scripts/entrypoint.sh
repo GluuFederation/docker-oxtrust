@@ -28,7 +28,7 @@ move_builtin_jars() {
 # ENTRYPOINT
 # ==========
 
-move_builtin_jars
+# move_builtin_jars
 
 python3 /app/scripts/wait.py
 python3 /app/scripts/jca_sync.py &
