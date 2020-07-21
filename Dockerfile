@@ -46,8 +46,8 @@ RUN wget -q https://ox.gluu.org/dist/jython/${JYTHON_VERSION}/jython-installer-$
 # oxTrust
 # =======
 
-ARG GLUU_VERSION=4.2.0.Final
-ARG GLUU_BUILD_DATE="2020-07-14 18:29"
+ARG GLUU_VERSION=4.2.1-SNAPSHOT
+ARG GLUU_BUILD_DATE="2020-07-20 15:27"
 
 # Install oxTrust
 RUN wget -q https://ox.gluu.org/maven/org/gluu/oxtrust-server/${GLUU_VERSION}/oxtrust-server-${GLUU_VERSION}.war -O /tmp/oxtrust.war \
@@ -180,8 +180,8 @@ ENV GLUU_MAX_RAM_PERCENTAGE=75.0 \
 LABEL name="oxTrust" \
     maintainer="Gluu Inc. <support@gluu.org>" \
     vendor="Gluu Federation" \
-    version="4.2.0" \
-    release="01" \
+    version="4.2.1" \
+    release="dev" \
     summary="Gluu oxTrust" \
     description="Gluu Server UI for managing authentication, authorization and users"
 
