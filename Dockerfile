@@ -1,21 +1,26 @@
-FROM openjdk:8-jre-alpine3.9
+FROM adoptopenjdk/openjdk11:alpine-jre
+
+# symlink JVM
+RUN mkdir -p /usr/lib/jvm/default-jvm /usr/java/latest \
+    && ln -sf /opt/java/openjdk /usr/lib/jvm/default-jvm/jre \
+    && ln -sf /usr/lib/jvm/default-jvm/jre /usr/java/latest/jre
 
 # ===============
 # Alpine packages
 # ===============
 
 RUN apk update \
-    && apk add --no-cache coreutils openssl py-pip ruby py3-pip \
+    && apk add --no-cache coreutils openssl py3-pip tini curl \
     && apk add --no-cache --virtual build-deps wget git
 
 # =====
 # Jetty
 # =====
 
-ENV JETTY_VERSION=9.4.24.v20191120 \
-    JETTY_HOME=/opt/jetty \
-    JETTY_BASE=/opt/gluu/jetty \
-    JETTY_USER_HOME_LIB=/home/jetty/lib
+ARG JETTY_VERSION=9.4.26.v20200117
+ARG JETTY_HOME=/opt/jetty
+ARG JETTY_BASE=/opt/gluu/jetty
+ARG JETTY_USER_HOME_LIB=/home/jetty/lib
 
 # Install jetty
 RUN wget -q https://repo1.maven.org/maven2/org/eclipse/jetty/jetty-distribution/${JETTY_VERSION}/jetty-distribution-${JETTY_VERSION}.tar.gz -O /tmp/jetty.tar.gz \
@@ -31,7 +36,7 @@ EXPOSE 8080
 # Jython
 # ======
 
-ENV JYTHON_VERSION=2.7.2
+ARG JYTHON_VERSION=2.7.2
 RUN wget -q https://ox.gluu.org/dist/jython/${JYTHON_VERSION}/jython-installer-${JYTHON_VERSION}.jar -O /tmp/jython-installer.jar \
     && mkdir -p /opt/jython \
     && java -jar /tmp/jython-installer.jar -v -s -d /opt/jython \
@@ -41,8 +46,8 @@ RUN wget -q https://ox.gluu.org/dist/jython/${JYTHON_VERSION}/jython-installer-$
 # oxTrust
 # =======
 
-ENV GLUU_VERSION=4.1.1.Final \
-    GLUU_BUILD_DATE="2020-05-26 18:00"
+ARG GLUU_VERSION=4.2.0.Final
+ARG GLUU_BUILD_DATE="2020-07-14 18:29"
 
 # Install oxTrust
 RUN wget -q https://ox.gluu.org/maven/org/gluu/oxtrust-server/${GLUU_VERSION}/oxtrust-server-${GLUU_VERSION}.war -O /tmp/oxtrust.war \
@@ -51,28 +56,22 @@ RUN wget -q https://ox.gluu.org/maven/org/gluu/oxtrust-server/${GLUU_VERSION}/ox
     && java -jar ${JETTY_HOME}/start.jar jetty.home=${JETTY_HOME} jetty.base=${JETTY_BASE}/identity --add-to-start=server,deploy,annotations,resources,http,http-forwarded,threadpool,jsp,websocket \
     && rm -f /tmp/oxtrust.war
 
-# RUN mkdir -p ${JETTY_BASE}/identity/conf \
-#     && unzip -q ${JETTY_BASE}/identity/webapps/identity/WEB-INF/lib/oxtrust-configuration-${GLUU_VERSION}.jar shibboleth3/* -d /opt/gluu/jetty/identity/conf
-
 # ===========
 # Custom libs
 # ===========
 
+# FIXME: oxtrust-api-server 4.2 is broken
 # oxTrust API
-RUN wget -q https://ox.gluu.org/maven/org/gluu/oxtrust-api-server/${GLUU_VERSION}/oxtrust-api-server-${GLUU_VERSION}.jar -O /tmp/oxtrust-api-server.jar
+ARG OXTRUST_API_VERSION=4.2.0-SNAPSHOT
+RUN wget -q https://ox.gluu.org/maven/org/gluu/oxtrust-api-server/${OXTRUST_API_VERSION}/oxtrust-api-server-${OXTRUST_API_VERSION}.jar -O /tmp/oxtrust-api-server.jar
 
 # ======
 # Facter
 # ======
 
-RUN gem install facter -v=2.5.7 --no-ri --no-rdoc
-
-# ====
-# Tini
-# ====
-
-RUN wget -q https://github.com/krallin/tini/releases/download/v0.18.0/tini-static -O /usr/bin/tini \
-    && chmod +x /usr/bin/tini
+ARG PYFACTER_VERSION=dd1c1bfa852b5d03c046e67ad3cba370a0da3944
+RUN wget -q https://github.com/GluuFederation/gluu-snap/raw/${PYFACTER_VERSION}/facter/facter -O /usr/bin/facter \
+    && chmod +x /usr/bin/facter
 
 # ======
 # rclone
@@ -88,9 +87,10 @@ RUN wget -q https://github.com/rclone/rclone/releases/download/${RCLONE_VERSION}
 # Python
 # ======
 
+RUN apk add --no-cache py3-cryptography
 COPY requirements.txt /tmp/requirements.txt
-RUN pip install -U pip \
-    && pip install --no-cache-dir -r /tmp/requirements.txt
+RUN pip3 install -U pip \
+    && pip3 install --no-cache-dir -r /tmp/requirements.txt
 
 # =======
 # Cleanup
@@ -180,8 +180,8 @@ ENV GLUU_MAX_RAM_PERCENTAGE=75.0 \
 LABEL name="oxTrust" \
     maintainer="Gluu Inc. <support@gluu.org>" \
     vendor="Gluu Federation" \
-    version="4.1.1" \
-    release="04" \
+    version="4.2.0" \
+    release="01" \
     summary="Gluu oxTrust" \
     description="Gluu Server UI for managing authentication, authorization and users"
 
@@ -204,31 +204,15 @@ RUN mkdir -p /etc/certs \
 # Copy templates
 COPY jetty/identity_web_resources.xml ${JETTY_BASE}/identity/webapps/
 COPY jetty/identity.xml ${JETTY_BASE}/identity/webapps/
-# COPY jetty/idp-metadata.xml ${JETTY_BASE}/identity/conf/shibboleth3/idp/idp-metadata.xml
 COPY conf/oxTrustLogRotationConfiguration.xml /etc/gluu/conf/
 COPY conf/*.tmpl /app/templates/
 COPY scripts /app/scripts
 RUN chmod +x /app/scripts/entrypoint.sh
 
-# # create jetty user
-# RUN useradd -ms /bin/sh --uid 1000 jetty \
-#     && usermod -a -G root jetty
-
-# # adjust ownership
-# RUN chown -R 1000:1000 /opt/gluu/jetty \
-#     && chown -R 1000:1000 /deploy \
-#     && chown -R 1000:1000 /opt/shibboleth-idp \
-#     && chown -R 1000:1000 /var/ox \
-#     && chmod -R g+w /usr/lib/jvm/default-jvm/jre/lib/security/cacerts \
-#     && chgrp -R 0 /opt/gluu/jetty && chmod -R g=u /opt/gluu/jetty \
-#     && chgrp -R 0 /opt/shibboleth-idp && chmod -R g=u /opt/shibboleth-idp \
-#     && chgrp -R 0 /etc/certs && chmod -R g=u /etc/certs \
-#     && chgrp -R 0 /etc/gluu && chmod -R g=u /etc/gluu \
-#     && chgrp -R 0 /deploy && chmod -R g=u /deploy \
-#     && chgrp -R 0 /var/ox && chmod -R g=u /var/ox
-
-# # run as non-root user
-# USER 1000
+# # JAXB
+# RUN wget -q https://repo1.maven.org/maven2/javax/xml/bind/jaxb-api/2.3.1/jaxb-api-2.3.1.jar -O ${JETTY_BASE}/identity/webapps/identity/WEB-INF/lib/jaxb-api-2.3.1.jar \
+#     && wget -q https://repo1.maven.org/maven2/org/glassfish/jaxb/jaxb-runtime/2.4.0-b180830.0438/jaxb-runtime-2.4.0-b180830.0438.jar -O ${JETTY_BASE}/identity/webapps/identity/WEB-INF/lib/jaxb-runtime-2.4.0-b180830.0438.jar \
+#     && rm -f ${JETTY_BASE}/identity/webapps/identity/WEB-INF/lib/jaxb-runtime-2.3.3-b02.jar
 
 ENTRYPOINT ["tini", "-e", "143", "-g", "--"]
 CMD ["sh", "/app/scripts/entrypoint.sh"]

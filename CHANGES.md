@@ -2,6 +2,16 @@
 
 Here you can see an overview of changes between each release.
 
+## Version 4.2.0_01
+
+Released on July 18th, 2020.
+
+* Added support for Gluu Server v4.2.
+* Upraded to Java 11.
+* Upgraded to Python3.
+* FIDO2 and SCIM are moved to their own images (see https://github.com/GluuFederation/docker-fido2 and https://github.com/GluuFederation/docker-scim respectively).
+* Removed Ruby-based `facter` in favor of Python-based `facter`.
+
 ## Version 4.1.1_04
 
 Released on June 5th, 2020.
