@@ -41,9 +41,7 @@ The following environment variables are supported by the container:
 - `GLUU_SECRET_KUBERNETES_USE_KUBE_CONFIG`: Load credentials from `$HOME/.kube/config`, only useful for non-container environment (default to `false`).
 - `GLUU_WAIT_MAX_TIME`: How long the startup "health checks" should run (default to `300` seconds).
 - `GLUU_WAIT_SLEEP_DURATION`: Delay between startup "health checks" (default to `10` seconds).
-- `GLUU_LDAP_URL`: The LDAP database's IP address or hostname. Default is `localhost:1636`. Multiple URLs can be used using comma-separated values (i.e. `192.168.100.1:1636,192.168.100.2:1636`).
-- `GLUU_MAX_RAM_FRACTION`: Used in conjunction with Docker memory limitations (`docker run -m <mem>`) to identify the fraction of the maximum amount of heap memory you want the JVM to use.
-- `GLUU_DEBUG_PORT`: port of remote debugging (if omitted, remote debugging will be disabled).
+- `GLUU_MAX_RAM_PERCENTAGE`: Value passed to Java option `-XX:MaxRAMPercentage`.
 - `GLUU_OXAUTH_BACKEND`: the oxAuth backend address, default is `localhost:8081` (used in `wait_for.py` script)
 - `GLUU_SHIB_SOURCE_DIR`: absolute path to directory to copy Shibboleth config from (default is `/opt/shibboleth-idp`)
 - `GLUU_SHIB_TARGET_DIR`: absolute path to directory to copy Shibboleth config to (default is `/opt/shared-shibboleth-idp`)
@@ -61,3 +59,4 @@ The following environment variables are supported by the container:
 - `GLUU_SYNC_SHIB_MANIFESTS`: Whether to sync Shibboleth manifest files to oxShibboleth containers (default to `false`).
 - `GLUU_SHIBWATCHER_INTERVAL`: Interval between Shibboleth files synchronization (default to `10`).
 - `GLUU_CONTAINER_METADATA`: The name of scheduler to pull container metadata (one of `docker` or `kubernetes`; default to `docker`).
+- `GLUU_JAVA_OPTIONS`: Java options passed to entrypoint, i.e. `-Xmx1024m` (default to empty-string).

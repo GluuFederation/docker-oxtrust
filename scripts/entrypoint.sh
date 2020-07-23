@@ -61,4 +61,5 @@ exec java \
     -Dpython.home=/opt/jython \
     -Djava.io.tmpdir=/opt/jetty/temp \
     $(get_debug_opt) \
+    ${GLUU_JAVA_OPTIONS} \
     -jar /opt/jetty/start.jar
