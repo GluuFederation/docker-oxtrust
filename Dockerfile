@@ -47,7 +47,7 @@ RUN wget -q https://ox.gluu.org/dist/jython/${JYTHON_VERSION}/jython-installer-$
 # =======
 
 ARG GLUU_VERSION=4.2.1-SNAPSHOT
-ARG GLUU_BUILD_DATE="2020-07-20 15:27"
+ARG GLUU_BUILD_DATE="2020-07-24 12:01"
 
 # Install oxTrust
 RUN wget -q https://ox.gluu.org/maven/org/gluu/oxtrust-server/${GLUU_VERSION}/oxtrust-server-${GLUU_VERSION}.war -O /tmp/oxtrust.war \
@@ -69,7 +69,7 @@ RUN wget -q https://ox.gluu.org/maven/org/gluu/oxtrust-api-server/${OXTRUST_API_
 # Facter
 # ======
 
-ARG PYFACTER_VERSION=dd1c1bfa852b5d03c046e67ad3cba370a0da3944
+ARG PYFACTER_VERSION=9d8478ee47dc5498a766e010e8d3a3451b46e541
 RUN wget -q https://github.com/GluuFederation/gluu-snap/raw/${PYFACTER_VERSION}/facter/facter -O /usr/bin/facter \
     && chmod +x /usr/bin/facter
 
