@@ -110,12 +110,12 @@ if __name__ == "__main__":
     if not os.path.isfile("/etc/certs/idp-encryption.crt"):
         manager.secret.to_file("idp3EncryptionCertificateText", "/etc/certs/idp-encryption.crt")
 
-    manager.secret.to_file(
-        "scim_rs_jks_base64",
-        manager.config.get("scim_rs_client_jks_fn"),
-        decode=True,
-        binary_mode=True,
-    )
+    # manager.secret.to_file(
+    #     "scim_rs_jks_base64",
+    #     manager.config.get("scim_rs_client_jks_fn"),
+    #     decode=True,
+    #     binary_mode=True,
+    # )
     manager.secret.to_file(
         "passport_rs_jks_base64",
         manager.config.get("passport_rs_client_jks_fn"),
@@ -145,19 +145,19 @@ if __name__ == "__main__":
             base64.b64decode(manager.secret.get("api_rp_client_base64_jwks")).decode()
         )
 
-    manager.secret.to_file("scim_rs_jks_base64", "/etc/certs/scim-rs.jks",
-                           decode=True, binary_mode=True)
-    with open(manager.config.get("scim_rs_client_jwks_fn"), "w") as f:
-        f.write(
-            base64.b64decode(manager.secret.get("scim_rs_client_base64_jwks")).decode()
-        )
+    # manager.secret.to_file("scim_rs_jks_base64", "/etc/certs/scim-rs.jks",
+    #                        decode=True, binary_mode=True)
+    # with open(manager.config.get("scim_rs_client_jwks_fn"), "w") as f:
+    #     f.write(
+    #         base64.b64decode(manager.secret.get("scim_rs_client_base64_jwks")).decode()
+    #     )
 
-    manager.secret.to_file("scim_rp_jks_base64", "/etc/certs/scim-rp.jks",
-                           decode=True, binary_mode=True)
-    with open(manager.config.get("scim_rp_client_jwks_fn"), "w") as f:
-        f.write(
-            base64.b64decode(manager.secret.get("scim_rp_client_base64_jwks")).decode()
-        )
+    # manager.secret.to_file("scim_rp_jks_base64", "/etc/certs/scim-rp.jks",
+    #                        decode=True, binary_mode=True)
+    # with open(manager.config.get("scim_rp_client_jwks_fn"), "w") as f:
+    #     f.write(
+    #         base64.b64decode(manager.secret.get("scim_rp_client_base64_jwks")).decode()
+    #     )
 
     modify_jetty_xml()
     modify_webdefault_xml()
