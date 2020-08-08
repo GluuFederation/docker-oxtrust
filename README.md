@@ -56,7 +56,7 @@ The following environment variables are supported by the container:
 - `GLUU_COUCHBASE_CONN_TIMEOUT`: Connect timeout used when a bucket is opened (default to `10000` milliseconds).
 - `GLUU_COUCHBASE_CONN_MAX_WAIT`: Maximum time to wait before retrying connection (default to `20000` milliseconds).
 - `GLUU_COUCHBASE_SCAN_CONSISTENCY`: Default scan consistency; one of `not_bounded`, `request_plus`, or `statement_plus` (default to `not_bounded`).
-- `GLUU_SYNC_SHIB_MANIFESTS`: Whether to sync Shibboleth manifest files to oxShibboleth containers (default to `false`).
-- `GLUU_SHIBWATCHER_INTERVAL`: Interval between Shibboleth files synchronization (default to `10`).
-- `GLUU_CONTAINER_METADATA`: The name of scheduler to pull container metadata (one of `docker` or `kubernetes`; default to `docker`).
 - `GLUU_JAVA_OPTIONS`: Java options passed to entrypoint, i.e. `-Xmx1024m` (default to empty-string).
+- `GLUU_DOCUMENT_STORE_TYPE`: Document store type (one of `LOCAL` or `JCA`; default to `LOCAL`).
+- `GLUU_JCA_URL`: URL to remote repository (default to `http://localhost:8080`).
+- `GLUU_JCA_SYNC_INTERVAL`: Interval between files sync (default to `300` seconds).
