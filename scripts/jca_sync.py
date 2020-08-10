@@ -51,13 +51,25 @@ def main():
 
     url = get_jackrabbit_url()
 
-    admin_id = "admin"
-    admin_id_file = os.environ.get("GLUU_JACKRABBIT_ADMIN_ID_FILE", "/etc/gluu/conf/jackrabbit_admin_id")
-    with contextlib.suppress(FileNotFoundError):
-        with open(admin_id_file) as f:
-            admin_id = f.read().strip()
+    # admin_id = "admin"
+    # admin_id_file = os.environ.get("GLUU_JACKRABBIT_ADMIN_ID_FILE", "/etc/gluu/conf/jackrabbit_admin_id")
+    # with contextlib.suppress(FileNotFoundError):
+    #     with open(admin_id_file) as f:
+    #         admin_id = f.read().strip()
 
-    username = password = admin_id
+    # username = password = admin_id
+
+    username = os.environ.get("GLUU_JACKRABBIT_ADMIN_ID", "admin")
+    password = ""
+
+    password_file = os.environ.get(
+        "GLUU_JACKRABBIT_ADMIN_PASSWORD_FILE",
+        "/etc/gluu/conf/jackrabbit_admin_password",
+    )
+    with contextlib.suppress(FileNotFoundError):
+        with open(password_file) as f:
+            password = f.read().strip()
+    password = password or username
 
     sync_interval = get_sync_interval()
     try:
