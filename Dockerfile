@@ -47,7 +47,7 @@ RUN wget -q https://ox.gluu.org/dist/jython/${JYTHON_VERSION}/jython-installer-$
 # =======
 
 ARG GLUU_VERSION=4.2.1-SNAPSHOT
-ARG GLUU_BUILD_DATE="2020-08-07 16:04"
+ARG GLUU_BUILD_DATE="2020-08-10 12:28"
 
 # Install oxTrust
 RUN wget -q https://ox.gluu.org/maven/org/gluu/oxtrust-server/${GLUU_VERSION}/oxtrust-server-${GLUU_VERSION}.war -O /tmp/oxtrust.war \
@@ -60,10 +60,13 @@ RUN wget -q https://ox.gluu.org/maven/org/gluu/oxtrust-server/${GLUU_VERSION}/ox
 # Custom libs
 # ===========
 
+RUN mkdir -p /usr/share/java
+
 # FIXME: oxtrust-api-server 4.2 is broken
 # oxTrust API
-# ARG OXTRUST_API_VERSION=4.2.0-SNAPSHOT
-# RUN wget -q https://ox.gluu.org/maven/org/gluu/oxtrust-api-server/${OXTRUST_API_VERSION}/oxtrust-api-server-${OXTRUST_API_VERSION}.jar -O /tmp/oxtrust-api-server.jar
+ARG OXTRUST_API_VERSION=4.2.1-SNAPSHOT
+ARG OXTRUST_API_BUILD_DATE="2020-08-10 12:30"
+RUN wget -q https://ox.gluu.org/maven/org/gluu/oxtrust-api-server/${OXTRUST_API_VERSION}/oxtrust-api-server-${OXTRUST_API_VERSION}.jar -O /usr/share/java/oxtrust-api-server.jar
 
 # ======
 # Facter
