@@ -167,12 +167,9 @@ ENV GLUU_MAX_RAM_PERCENTAGE=75.0 \
     GLUU_WAIT_MAX_TIME=300 \
     GLUU_WAIT_SLEEP_DURATION=10 \
     PYTHON_HOME=/opt/jython \
-    GLUU_SYNC_SHIB_MANIFESTS=false \
-    GLUU_SHIBWATCHER_INTERVAL=10 \
     GLUU_DOCUMENT_STORE_TYPE=LOCAL \
-    GLUU_JCA_URL=http://localhost:8080 \
-    GLUU_JCA_PASSWORD_FILE=/etc/gluu/conf/jca_password \
-    GLUU_JCA_USERNAME=admin \
+    GLUU_JACKRABBIT_URL=http://localhost:8080 \
+    GLUU_JACKRABBIT_ADMIN_ID_FILE=/etc/gluu/conf/jackrabbit_admin_id \
     GLUU_JAVA_OPTIONS=""
 
 # ==========
