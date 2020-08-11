@@ -13,6 +13,16 @@ RUN apk update \
     && apk add --no-cache openssl py3-pip tini curl bash \
     && apk add --no-cache --virtual build-deps wget git
 
+# ======
+# rclone
+# ======
+
+ARG RCLONE_VERSION=v1.51.0
+RUN wget -q https://github.com/rclone/rclone/releases/download/${RCLONE_VERSION}/rclone-${RCLONE_VERSION}-linux-amd64.zip -O /tmp/rclone.zip \
+    && unzip -qq /tmp/rclone.zip -d /tmp \
+    && mv /tmp/rclone-${RCLONE_VERSION}-linux-amd64/rclone /usr/bin/ \
+    && rm -rf /tmp/rclone-${RCLONE_VERSION}-linux-amd64 /tmp/rclone.zip
+
 # =====
 # Jetty
 # =====
@@ -47,7 +57,7 @@ RUN wget -q https://ox.gluu.org/dist/jython/${JYTHON_VERSION}/jython-installer-$
 # =======
 
 ARG GLUU_VERSION=4.2.1-SNAPSHOT
-ARG GLUU_BUILD_DATE="2020-08-10 12:28"
+ARG GLUU_BUILD_DATE="2020-08-11 19:45"
 
 # Install oxTrust
 RUN wget -q https://ox.gluu.org/maven/org/gluu/oxtrust-server/${GLUU_VERSION}/oxtrust-server-${GLUU_VERSION}.war -O /tmp/oxtrust.war \
@@ -75,16 +85,6 @@ RUN wget -q https://ox.gluu.org/maven/org/gluu/oxtrust-api-server/${OXTRUST_API_
 ARG PYFACTER_VERSION=9d8478ee47dc5498a766e010e8d3a3451b46e541
 RUN wget -q https://github.com/GluuFederation/gluu-snap/raw/${PYFACTER_VERSION}/facter/facter -O /usr/bin/facter \
     && chmod +x /usr/bin/facter
-
-# ======
-# rclone
-# ======
-
-ARG RCLONE_VERSION=v1.51.0
-RUN wget -q https://github.com/rclone/rclone/releases/download/${RCLONE_VERSION}/rclone-${RCLONE_VERSION}-linux-amd64.zip -O /tmp/rclone.zip \
-    && unzip -qq /tmp/rclone.zip -d /tmp \
-    && mv /tmp/rclone-${RCLONE_VERSION}-linux-amd64/rclone /usr/bin/ \
-    && rm -rf /tmp/rclone-${RCLONE_VERSION}-linux-amd64 /tmp/rclone.zip
 
 # ======
 # Python
