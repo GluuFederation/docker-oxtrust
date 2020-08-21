@@ -72,10 +72,9 @@ RUN wget -q https://ox.gluu.org/maven/org/gluu/oxtrust-server/${GLUU_VERSION}/ox
 
 RUN mkdir -p /usr/share/java
 
-# FIXME: oxtrust-api-server 4.2 is broken
 # oxTrust API
 ARG OXTRUST_API_VERSION=4.2.1-SNAPSHOT
-ARG OXTRUST_API_BUILD_DATE="2020-08-10 12:30"
+ARG OXTRUST_API_BUILD_DATE="2020-08-21 11:24"
 RUN wget -q https://ox.gluu.org/maven/org/gluu/oxtrust-api-server/${OXTRUST_API_VERSION}/oxtrust-api-server-${OXTRUST_API_VERSION}.jar -O /usr/share/java/oxtrust-api-server.jar
 
 # ======
