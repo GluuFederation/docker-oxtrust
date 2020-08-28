@@ -4,10 +4,8 @@ Docker image packaging for oxTrust.
 
 ## Versions
 
-- Stable: `gluufederation/oxtrust:4.2.0_02`
-- Unstable: `gluufederation/oxtrust:4.2.1_dev`
-
-Refer to [Changelog](./CHANGES.md) for details on new features, bug fixes, or older releases.
+See [Releases](https://github.com/GluuFederation/docker-oxtrust/releases) for stable versions.
+For bleeding-edge/unstable version, use `gluufederation/oxtrust:4.2.1_dev`.
 
 ## Environment Variables
 
