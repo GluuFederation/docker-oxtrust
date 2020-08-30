@@ -57,7 +57,7 @@ RUN wget -q https://ox.gluu.org/dist/jython/${JYTHON_VERSION}/jython-installer-$
 # =======
 
 ENV GLUU_VERSION=4.2.1-SNAPSHOT
-ENV GLUU_BUILD_DATE="2020-08-26 20:12"
+ENV GLUU_BUILD_DATE="2020-08-27 10:45"
 
 # Install oxTrust
 RUN wget -q https://ox.gluu.org/maven/org/gluu/oxtrust-server/${GLUU_VERSION}/oxtrust-server-${GLUU_VERSION}.war -O /tmp/oxtrust.war \
@@ -74,7 +74,7 @@ RUN mkdir -p /usr/share/java
 
 # oxTrust API
 ARG OXTRUST_API_VERSION=4.2.1-SNAPSHOT
-ARG OXTRUST_API_BUILD_DATE="2020-08-21 11:24"
+ARG OXTRUST_API_BUILD_DATE="2020-08-27 10:47"
 RUN wget -q https://ox.gluu.org/maven/org/gluu/oxtrust-api-server/${OXTRUST_API_VERSION}/oxtrust-api-server-${OXTRUST_API_VERSION}.jar -O /usr/share/java/oxtrust-api-server.jar
 
 # ======
