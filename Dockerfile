@@ -1,4 +1,4 @@
-FROM adoptopenjdk/openjdk11:alpine-jre
+FROM adoptopenjdk/openjdk11:jre-11.0.8_10-alpine
 
 # symlink JVM
 RUN mkdir -p /usr/lib/jvm/default-jvm /usr/java/latest \
@@ -10,8 +10,18 @@ RUN mkdir -p /usr/lib/jvm/default-jvm /usr/java/latest \
 # ===============
 
 RUN apk update \
-    && apk add --no-cache coreutils openssl py3-pip tini curl bash \
+    && apk add --no-cache openssl py3-pip tini curl bash \
     && apk add --no-cache --virtual build-deps wget git
+
+# ======
+# rclone
+# ======
+
+ARG RCLONE_VERSION=v1.51.0
+RUN wget -q https://github.com/rclone/rclone/releases/download/${RCLONE_VERSION}/rclone-${RCLONE_VERSION}-linux-amd64.zip -O /tmp/rclone.zip \
+    && unzip -qq /tmp/rclone.zip -d /tmp \
+    && mv /tmp/rclone-${RCLONE_VERSION}-linux-amd64/rclone /usr/bin/ \
+    && rm -rf /tmp/rclone-${RCLONE_VERSION}-linux-amd64 /tmp/rclone.zip
 
 # =====
 # Jetty
@@ -40,14 +50,14 @@ ARG JYTHON_VERSION=2.7.2
 RUN wget -q https://ox.gluu.org/dist/jython/${JYTHON_VERSION}/jython-installer-${JYTHON_VERSION}.jar -O /tmp/jython-installer.jar \
     && mkdir -p /opt/jython \
     && java -jar /tmp/jython-installer.jar -v -s -d /opt/jython \
-    && rm -f /tmp/jython-installer.jar
+    && rm -f /tmp/jython-installer.jar /tmp/*.properties
 
 # =======
 # oxTrust
 # =======
 
-ARG GLUU_VERSION=4.2.0.Final
-ARG GLUU_BUILD_DATE="2020-07-14 18:29"
+ENV GLUU_VERSION=4.2.1.Final
+ENV GLUU_BUILD_DATE="2020-09-24 08:28"
 
 # Install oxTrust
 RUN wget -q https://ox.gluu.org/maven/org/gluu/oxtrust-server/${GLUU_VERSION}/oxtrust-server-${GLUU_VERSION}.war -O /tmp/oxtrust.war \
@@ -60,37 +70,28 @@ RUN wget -q https://ox.gluu.org/maven/org/gluu/oxtrust-server/${GLUU_VERSION}/ox
 # Custom libs
 # ===========
 
-# FIXME: oxtrust-api-server 4.2 is broken
+RUN mkdir -p /usr/share/java
+
 # oxTrust API
-ARG OXTRUST_API_VERSION=4.2.0-SNAPSHOT
-RUN wget -q https://ox.gluu.org/maven/org/gluu/oxtrust-api-server/${OXTRUST_API_VERSION}/oxtrust-api-server-${OXTRUST_API_VERSION}.jar -O /tmp/oxtrust-api-server.jar
+RUN wget -q https://ox.gluu.org/maven/org/gluu/oxtrust-api-server/${GLUU_VERSION}/oxtrust-api-server-${GLUU_VERSION}.jar -O /usr/share/java/oxtrust-api-server.jar
 
 # ======
 # Facter
 # ======
 
-ARG PYFACTER_VERSION=dd1c1bfa852b5d03c046e67ad3cba370a0da3944
+ARG PYFACTER_VERSION=9d8478ee47dc5498a766e010e8d3a3451b46e541
 RUN wget -q https://github.com/GluuFederation/gluu-snap/raw/${PYFACTER_VERSION}/facter/facter -O /usr/bin/facter \
     && chmod +x /usr/bin/facter
-
-# ======
-# rclone
-# ======
-
-ARG RCLONE_VERSION=v1.51.0
-RUN wget -q https://github.com/rclone/rclone/releases/download/${RCLONE_VERSION}/rclone-${RCLONE_VERSION}-linux-amd64.zip -O /tmp/rclone.zip \
-    && unzip -qq /tmp/rclone.zip -d /tmp \
-    && mv /tmp/rclone-${RCLONE_VERSION}-linux-amd64/rclone /usr/bin/ \
-    && rm -rf /tmp/rclone-${RCLONE_VERSION}-linux-amd64 /tmp/rclone.zip
 
 # ======
 # Python
 # ======
 
 RUN apk add --no-cache py3-cryptography
-COPY requirements.txt /tmp/requirements.txt
+COPY requirements.txt /app/requirements.txt
 RUN pip3 install -U pip \
-    && pip3 install --no-cache-dir -r /tmp/requirements.txt
+    && pip3 install --no-cache-dir -r /app/requirements.txt \
+    && rm -rf /src/pygluu-containerlib/.git
 
 # =======
 # Cleanup
@@ -166,12 +167,12 @@ ENV GLUU_MAX_RAM_PERCENTAGE=75.0 \
     GLUU_WAIT_MAX_TIME=300 \
     GLUU_WAIT_SLEEP_DURATION=10 \
     PYTHON_HOME=/opt/jython \
-    GLUU_SYNC_SHIB_MANIFESTS=false \
-    GLUU_SHIBWATCHER_INTERVAL=10 \
     GLUU_DOCUMENT_STORE_TYPE=LOCAL \
-    GLUU_JCA_URL=http://localhost:8080 \
-    GLUU_JCA_PASSWORD_FILE=/etc/gluu/conf/jca_password \
-    GLUU_JCA_USERNAME=admin
+    GLUU_JACKRABBIT_URL=http://localhost:8080 \
+    GLUU_JACKRABBIT_ADMIN_ID=admin \
+    GLUU_JACKRABBIT_ADMIN_PASSWORD_FILE=/etc/gluu/conf/jackrabbit_admin_password \
+    GLUU_JAVA_OPTIONS="" \
+    GLUU_SSL_CERT_FROM_SECRETS=false
 
 # ==========
 # misc stuff
@@ -180,7 +181,7 @@ ENV GLUU_MAX_RAM_PERCENTAGE=75.0 \
 LABEL name="oxTrust" \
     maintainer="Gluu Inc. <support@gluu.org>" \
     vendor="Gluu Federation" \
-    version="4.2.0" \
+    version="4.2.1" \
     release="02" \
     summary="Gluu oxTrust" \
     description="Gluu Server UI for managing authentication, authorization and users"
@@ -208,11 +209,6 @@ COPY conf/oxTrustLogRotationConfiguration.xml /etc/gluu/conf/
 COPY conf/*.tmpl /app/templates/
 COPY scripts /app/scripts
 RUN chmod +x /app/scripts/entrypoint.sh
-
-# # JAXB
-# RUN wget -q https://repo1.maven.org/maven2/javax/xml/bind/jaxb-api/2.3.1/jaxb-api-2.3.1.jar -O ${JETTY_BASE}/identity/webapps/identity/WEB-INF/lib/jaxb-api-2.3.1.jar \
-#     && wget -q https://repo1.maven.org/maven2/org/glassfish/jaxb/jaxb-runtime/2.4.0-b180830.0438/jaxb-runtime-2.4.0-b180830.0438.jar -O ${JETTY_BASE}/identity/webapps/identity/WEB-INF/lib/jaxb-runtime-2.4.0-b180830.0438.jar \
-#     && rm -f ${JETTY_BASE}/identity/webapps/identity/WEB-INF/lib/jaxb-runtime-2.3.3-b02.jar
 
 ENTRYPOINT ["tini", "-e", "143", "-g", "--"]
 CMD ["sh", "/app/scripts/entrypoint.sh"]

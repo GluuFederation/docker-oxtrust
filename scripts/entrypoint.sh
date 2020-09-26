@@ -20,7 +20,7 @@ move_builtin_jars() {
     # move oxtrust-api lib
     if [ ! -f /opt/gluu/jetty/identity/custom/libs/oxtrust-api-server.jar ]; then
         mkdir -p /opt/gluu/jetty/identity/custom/libs
-        mv /tmp/oxtrust-api-server.jar /opt/gluu/jetty/identity/custom/libs/oxtrust-api-server.jar
+        mv /usr/share/java/oxtrust-api-server.jar /opt/gluu/jetty/identity/custom/libs/oxtrust-api-server.jar
     fi
 }
 
@@ -28,7 +28,7 @@ move_builtin_jars() {
 # ENTRYPOINT
 # ==========
 
-# move_builtin_jars
+move_builtin_jars
 
 python3 /app/scripts/wait.py
 python3 /app/scripts/jca_sync.py &
@@ -61,4 +61,5 @@ exec java \
     -Dpython.home=/opt/jython \
     -Djava.io.tmpdir=/opt/jetty/temp \
     $(get_debug_opt) \
+    ${GLUU_JAVA_OPTIONS} \
     -jar /opt/jetty/start.jar
