@@ -56,6 +56,7 @@ RUN wget -q https://ox.gluu.org/dist/jython/${JYTHON_VERSION}/jython-installer-$
 # oxTrust
 # =======
 
+# @TODO: change this as soon as 4.2.2-SNAPSHOT is available
 ENV GLUU_VERSION=4.2.1.Final
 ENV GLUU_BUILD_DATE="2020-09-24 08:28"
 
@@ -181,8 +182,8 @@ ENV GLUU_MAX_RAM_PERCENTAGE=75.0 \
 LABEL name="oxTrust" \
     maintainer="Gluu Inc. <support@gluu.org>" \
     vendor="Gluu Federation" \
-    version="4.2.1" \
-    release="02" \
+    version="4.2.2" \
+    release="dev" \
     summary="Gluu oxTrust" \
     description="Gluu Server UI for managing authentication, authorization and users"
 
