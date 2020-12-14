@@ -87,7 +87,7 @@ RUN wget -q https://github.com/GluuFederation/gluu-snap/raw/${PYFACTER_VERSION}/
 # Python
 # ======
 
-RUN apk add --no-cache py3-cryptography
+RUN apk add --no-cache py3-cryptography py3-lxml
 COPY requirements.txt /app/requirements.txt
 RUN pip3 install -U pip \
     && pip3 install --no-cache-dir -r /app/requirements.txt \
