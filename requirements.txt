@@ -1,4 +1,4 @@
 click==6.7
 docker==3.7.2
 watchdog==0.8.2
--e git+https://github.com/GluuFederation/pygluu-containerlib@1.1.0#egg=pygluu-containerlib
+-e git+https://github.com/GluuFederation/pygluu-containerlib@1.2.0#egg=pygluu-containerlib
