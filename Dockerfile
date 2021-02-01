@@ -47,7 +47,7 @@ RUN wget -q https://repo1.maven.org/maven2/org/python/jython-installer/${JYTHON_
 # =======
 
 ENV GLUU_VERSION=4.2.2.sp1
-ENV GLUU_BUILD_DATE="2020-12-30 21:43"
+ENV GLUU_BUILD_DATE="2021-01-30 17:55"
 
 # Install oxTrust
 RUN wget -q https://ox.gluu.org/maven/org/gluu/oxtrust-server/${GLUU_VERSION}/oxtrust-server-${GLUU_VERSION}.war -O /tmp/oxtrust.war \
