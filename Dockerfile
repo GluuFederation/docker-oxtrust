@@ -11,13 +11,13 @@ RUN mkdir -p /usr/lib/jvm/default-jvm /usr/java/latest \
 
 RUN apk update \
     && apk add --no-cache openssl py3-pip tini curl bash \
-    && apk add --no-cache --virtual build-deps wget git
+    && apk add --no-cache --virtual build-deps wget git gcc musl-dev python3-dev libffi-dev openssl-dev libxml2-dev libxslt-dev
 
 # =====
 # Jetty
 # =====
 
-ARG JETTY_VERSION=9.4.26.v20200117
+ARG JETTY_VERSION=9.4.35.v20201120
 ARG JETTY_HOME=/opt/jetty
 ARG JETTY_BASE=/opt/gluu/jetty
 ARG JETTY_USER_HOME_LIB=/home/jetty/lib
@@ -46,8 +46,8 @@ RUN wget -q https://repo1.maven.org/maven2/org/python/jython-installer/${JYTHON_
 # oxTrust
 # =======
 
-ENV GLUU_VERSION=4.2.2.sp1
-ENV GLUU_BUILD_DATE="2021-01-30 17:55"
+ENV GLUU_VERSION=4.2.3.Final
+ENV GLUU_BUILD_DATE="2021-02-02 12:42"
 
 # Install oxTrust
 RUN wget -q https://ox.gluu.org/maven/org/gluu/oxtrust-server/${GLUU_VERSION}/oxtrust-server-${GLUU_VERSION}.war -O /tmp/oxtrust.war \
@@ -77,7 +77,6 @@ RUN wget -q https://github.com/GluuFederation/gluu-snap/raw/${PYFACTER_VERSION}/
 # Python
 # ======
 
-RUN apk add --no-cache py3-cryptography py3-lxml
 COPY requirements.txt /app/requirements.txt
 RUN pip3 install -U pip \
     && pip3 install --no-cache-dir -r /app/requirements.txt \
@@ -87,8 +86,19 @@ RUN pip3 install -U pip \
 # Cleanup
 # =======
 
-RUN apk del build-deps \
-    && rm -rf /var/cache/apk/*
+# webdavclient3 requires binary compiled from libxslt-dev
+RUN cp /usr/lib/libxslt.so.1 /tmp/libxslt.so.1 \
+    && cp /usr/lib/libexslt.so.0 /tmp/libexslt.so.0 \
+    && cp /usr/lib/libxml2.so.2 /tmp/libxml2.so.2 \
+    && cp /usr/lib/libgcrypt.so.20 /tmp/libgcrypt.so.20 \
+    && cp /usr/lib/libgpg-error.so.0 /tmp/libgpg-error.so.0 \
+    && apk del build-deps \
+    && rm -rf /var/cache/apk/* \
+    && mv /tmp/libxslt.so.1 /usr/lib/libxslt.so.1 \
+    && mv /tmp/libexslt.so.0 /usr/lib/libexslt.so.0 \
+    && mv /tmp/libxml2.so.2 /usr/lib/libxml2.so.2 \
+    && mv /tmp/libgcrypt.so.20 /usr/lib/libgcrypt.so.20 \
+    && mv /tmp/libgpg-error.so.0 /usr/lib/libgpg-error.so.0
 
 # =======
 # License
@@ -173,8 +183,8 @@ ENV GLUU_MAX_RAM_PERCENTAGE=75.0 \
 LABEL name="oxTrust" \
     maintainer="Gluu Inc. <support@gluu.org>" \
     vendor="Gluu Federation" \
-    version="4.2.2" \
-    release="05" \
+    version="4.2.3" \
+    release="01" \
     summary="Gluu oxTrust" \
     description="Gluu Server UI for managing authentication, authorization and users"
 
