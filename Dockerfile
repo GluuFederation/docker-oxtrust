@@ -5,8 +5,8 @@ FROM alpine:3.13
 # ===============
 
 RUN apk update \
-    && apk add --no-cache openssl py3-pip tini curl bash openjdk11-jre-headless \
-    && apk add --no-cache --virtual build-deps wget git gcc musl-dev python3-dev libffi-dev openssl-dev libxml2-dev libxslt-dev cargo \
+    && apk add --no-cache openssl py3-pip tini curl bash openjdk11-jre-headless py3-cryptography py3-lxml \
+    && apk add --no-cache --virtual build-deps wget git \
     && mkdir -p /usr/java/latest \
     && ln -sf /usr/lib/jvm/default-jvm/jre /usr/java/latest/jre
 
@@ -84,19 +84,8 @@ RUN pip3 install -U pip \
 # Cleanup
 # =======
 
-# webdavclient3 requires binary compiled from libxslt-dev
-RUN cp /usr/lib/libxslt.so.1 /tmp/libxslt.so.1 \
-    && cp /usr/lib/libexslt.so.0 /tmp/libexslt.so.0 \
-    && cp /usr/lib/libxml2.so.2 /tmp/libxml2.so.2 \
-    && cp /usr/lib/libgcrypt.so.20 /tmp/libgcrypt.so.20 \
-    && cp /usr/lib/libgpg-error.so.0 /tmp/libgpg-error.so.0 \
-    && apk del build-deps \
-    && rm -rf /var/cache/apk/* \
-    && mv /tmp/libxslt.so.1 /usr/lib/libxslt.so.1 \
-    && mv /tmp/libexslt.so.0 /usr/lib/libexslt.so.0 \
-    && mv /tmp/libxml2.so.2 /usr/lib/libxml2.so.2 \
-    && mv /tmp/libgcrypt.so.20 /usr/lib/libgcrypt.so.20 \
-    && mv /tmp/libgpg-error.so.0 /usr/lib/libgpg-error.so.0
+RUN apk del build-deps \
+    && rm -rf /var/cache/apk/*
 
 # =======
 # License
