@@ -45,7 +45,7 @@ RUN wget -q https://repo1.maven.org/maven2/org/python/jython-installer/${JYTHON_
 # =======
 
 ENV GLUU_VERSION=4.3.0-SNAPSHOT
-ENV GLUU_BUILD_DATE="2021-02-15 16:17"
+ENV GLUU_BUILD_DATE="2021-03-10 12:16"
 
 # Install oxTrust
 RUN wget -q https://ox.gluu.org/maven/org/gluu/oxtrust-server/${GLUU_VERSION}/oxtrust-server-${GLUU_VERSION}.war -O /tmp/oxtrust.war \
@@ -145,7 +145,9 @@ ENV GLUU_PERSISTENCE_TYPE=ldap \
     GLUU_COUCHBASE_CONN_MAX_WAIT=20000 \
     GLUU_COUCHBASE_SCAN_CONSISTENCY=not_bounded \
     GLUU_COUCHBASE_BUCKET_PREFIX=gluu \
-    GLUU_COUCHBASE_TRUSTSTORE_ENABLE=true
+    GLUU_COUCHBASE_TRUSTSTORE_ENABLE=true \
+    GLUU_COUCHBASE_KEEPALIVE_INTERVAL=30000 \
+    GLUU_COUCHBASE_KEEPALIVE_TIMEOUT=2500
 
 # ===========
 # Generic ENV
