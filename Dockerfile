@@ -137,6 +137,7 @@ ENV GLUU_SECRET_ADAPTER=vault \
 ENV GLUU_PERSISTENCE_TYPE=ldap \
     GLUU_PERSISTENCE_LDAP_MAPPING=default \
     GLUU_LDAP_URL=localhost:1636 \
+    GLUU_LDAP_USE_SSL=true \
     GLUU_COUCHBASE_URL=localhost \
     GLUU_COUCHBASE_USER=admin \
     GLUU_COUCHBASE_CERT_FILE=/etc/certs/couchbase.crt \
